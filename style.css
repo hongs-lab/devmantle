@@ -38,7 +38,7 @@ header h1 span { color: var(--accent); }
 @keyframes blink { 50% { opacity: 0; } }
 header p { margin: 6px 0 0; font: 13px var(--mono); color: var(--muted); }
 
-.tabs { display: flex; margin-top: 28px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.tabs { position: relative; display: flex; margin-top: 28px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
 .tab { display: flex; align-items: center; gap: 8px; padding: 9px 14px; margin-bottom: -1px; white-space: nowrap;
   font: 500 13px var(--mono); color: var(--muted); background: none; border: 1px solid transparent; border-bottom: 0; border-radius: 7px 7px 0 0; }
 .tab:hover { color: var(--ink); }

@@ -4,6 +4,7 @@ const LANGS = [
   { id: 'py', file: 'main.py', name: 'Python', dot: '#3572A5', ps: '>>>', eg: 'print' },
   { id: 'js', file: 'index.js', name: 'JavaScript', dot: '#f1e05a', ps: '>', eg: 'map' },
   { id: 'java', file: 'Main.java', name: 'Java', dot: '#b07219', ps: 'jshell>', eg: 'String' },
+  { id: 'rs', file: 'main.rs', name: 'Rust', dot: '#dea584', ps: '>>', eg: 'unwrap' },
 ];
 const HINT_RANKS = [30, 10, 3];
 
@@ -20,16 +21,18 @@ function parse(raw) {
     if (rare) name = name.slice(1);
     return { name, tags: tags.split(' '), desc, rare, grams: bigrams(name.toLowerCase()) };
   });
-  const df = {}, co = {};
+  // 프로토타입 없는 객체: 태그 이름이 constructor·toString 같아도 Object 기본 속성과 안 부딪힌다
+  const bag = () => Object.create(null);
+  const df = bag(), co = bag();
   for (const w of words) for (const t of w.tags) {
     df[t] = (df[t] || 0) + 1;
-    co[t] ??= {};
+    co[t] ??= bag();
     for (const u of w.tags) if (u !== t) co[t][u] = (co[t][u] || 0) + 1;
   }
   // IDF: a tag shared by few words says more than one shared by many
   const idf = t => Math.log(1 + words.length / df[t]);
   for (const w of words) {
-    w.vec = {};
+    w.vec = bag();
     for (const t of w.tags) w.vec[t] = idf(t);
     // tags that often appear together (pp ↔ macro ↔ const) leak weight to each other,
     // so a far-off guess still gets a small ordered score instead of a flat 0
@@ -55,10 +58,11 @@ function rankFor(words, answer) {
 }
 
 function lookup(words, raw) {
-  const q = raw.replace(/\s+/g, '').replace(/^[#@]/, '').replace(/[();]+$/, '').replace(/<.*>$/, '');
+  const q = raw.replace(/\s+/g, '').replace(/^[#@&]+/, '').replace(/[();]+$/, '').replace(/<.*>$/, '');
   if (!q) return null;
   const lq = q.toLowerCase();
-  const hit = words.find(w => w.name === q) || words.find(w => w.name.toLowerCase() === lq);
+  const hit = words.find(w => w.name === q || w.name === q + '!') // Rust 매크로는 ! 생략 가능
+    || words.find(w => w.name.toLowerCase() === lq);
   if (hit) return hit;
   const seg = q.slice(Math.max(q.lastIndexOf('.'), q.lastIndexOf(':')) + 1);
   if (seg !== q) return lookup(words, seg); // "System.out.println" → println, "std::vector<int>" → vector
@@ -109,8 +113,12 @@ function say(html, err) {
 }
 
 function renderTabs() {
-  $('tabs').innerHTML = LANGS.map(l => `<button type="button" role="tab" class="tab${done(game(l.id)) ? ' done' : ''}"
+  const tabs = $('tabs'), x = tabs.scrollLeft;
+  tabs.innerHTML = LANGS.map(l => `<button type="button" role="tab" class="tab${done(game(l.id)) ? ' done' : ''}"
     aria-selected="${l.id === cur}" data-id="${l.id}" style="--dot:${l.dot}"><i class="dot"></i>${l.file}</button>`).join('');
+  // 다시 그려도 가로 스크롤을 유지하고, 좁은 화면에서도 선택한 탭이 보이게
+  const sel = tabs.querySelector('[aria-selected="true"]');
+  tabs.scrollLeft = Math.min(Math.max(x, sel.offsetLeft + sel.offsetWidth - tabs.clientWidth), sel.offsetLeft);
 }
 
 function render() {
@@ -263,16 +271,16 @@ $('form').addEventListener('submit', e => {
   const g = game(cur), q = $('guess').value.trim();
   if (!q) return;
   const w = lookup(g.words, q);
-  if (!w) return say(`<code>${esc(q)}</code>는 사전에 없는 식별자예요. 표준 라이브러리·키워드 위주로 시도해보세요.`, true);
+  if (!w) return say(`<code>${esc(q)}</code> — 사전에 없는 식별자예요. 표준 라이브러리·키워드 위주로 시도해보세요.`, true);
   $('guess').value = '';
   disarm();
   if (g.guesses.some(x => x.name === w.name)) {
-    say(`<code>${esc(w.name)}</code>는 이미 입력했어요.`);
+    say(`<code>${esc(w.name)}</code> — 이미 입력한 식별자예요.`);
     return flash(w.name);
   }
   g.guesses.push({ name: w.name });
   save(g);
-  say(w.name !== q ? `<code>${esc(w.name)}</code>로 입력했어요.` : '');
+  say(w.name !== q ? `<code>${esc(w.name)}</code> 식별자로 인식했어요.` : '');
   render();
   if (w === g.answer) celebrate();
 });
@@ -291,7 +299,7 @@ $('hint').addEventListener('click', () => {
   const name = g.ranked[t].w.name;
   g.guesses.push({ name, hint: true });
   save(g);
-  say(`힌트: <code>${esc(name)}</code>는 ${t}위예요.`);
+  say(`힌트: <code>${esc(name)}</code> — ${t}위`);
   render();
 });
 

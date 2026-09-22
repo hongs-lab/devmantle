@@ -1027,4 +1027,194 @@ sqrt|method math num float static|제곱근
 pow|method math num float static|거듭제곱
 random|method math rand static|0 이상 1 미만 난수
 ~lock|method thread sync lock|락 획득
+`,
+rs: `
+fn|kw func decl|함수 정의
+let|kw decl var bind|변수 바인딩
+mut|kw mutable var borrow|가변으로 선언
+const|kw decl const compile|컴파일 타임 상수
+static|kw decl global lifetime|정적 변수 / 'static 수명
+struct|kw type decl data|구조체 정의
+enum|kw type decl variant|열거형 (대수적 데이터 타입)
+impl|kw trait decl method|메서드·트레이트 구현
+trait|kw trait decl generic|트레이트 정의
+type|kw type alias|타입 별칭
+mod|kw module decl|모듈 선언
+use|kw module import|경로 가져오기
+pub|kw access visibility|공개 가시성
+crate|kw module root|현재 크레이트 루트
+self|kw instance method|메서드의 수신자 / 현재 모듈
+Self|kw type instance trait|구현 중인 타입 자신
+super|kw module parent|부모 모듈
+where|kw generic constraint trait|트레이트 바운드 절
+dyn|kw trait dispatch dynamic|트레이트 객체 (동적 디스패치)
+~unsafe|kw memory ptr raw|안전성 검사를 끄는 블록
+~extern|kw ffi linkage|외부 함수 인터페이스
+ref|kw borrow pattern|패턴에서 참조로 바인딩
+move|kw closure ownership|클로저가 소유권을 가져감
+as|kw cast conv|타입 캐스팅 / 별칭
+if|kw cond branch control|조건 분기
+else|kw cond branch control|if가 거짓일 때
+match|kw branch pattern control|패턴 매칭
+loop|kw loop control|무한 반복
+while|kw loop control cond|조건 반복
+for|kw loop control iter|이터레이터 순회
+in|kw loop iter|for의 순회 대상
+break|kw control jump loop|반복 탈출 (값 반환 가능)
+continue|kw control jump loop|다음 반복으로
+return|kw control jump func|함수에서 값 반환
+async|kw async future func|비동기 함수·블록
+await|kw async future wait|Future 완료 대기
+true|const bool|참
+false|const bool|거짓
+i32|type primitive int sign num|32비트 부호 있는 정수
+i64|type primitive int sign num|64비트 부호 있는 정수
+u8|type primitive int unsigned bytes|8비트 부호 없는 정수 (바이트)
+u32|type primitive int unsigned num|32비트 부호 없는 정수
+~u64|type primitive int unsigned num|64비트 부호 없는 정수
+usize|type primitive int unsigned size index|포인터 크기 부호 없는 정수 (인덱스)
+~isize|type primitive int sign size|포인터 크기 부호 있는 정수
+f64|type primitive float num|64비트 실수
+~f32|type primitive float num|32비트 실수
+bool|type primitive bool|불리언
+char|type primitive char unicode|유니코드 스칼라 값
+str|type primitive str text borrow|문자열 슬라이스 (&str)
+String|type std str text owned heap|힙에 저장되는 가변 문자열
+Vec|type std collection seq heap|가변 길이 벡터
+HashMap|type std collection map key hash|해시 맵
+~BTreeMap|type std collection map key sort|정렬된 맵
+HashSet|type std collection set unique hash|해시 집합
+~BTreeSet|type std collection set unique sort|정렬된 집합
+VecDeque|type std collection seq queue|양방향 큐
+~BinaryHeap|type std collection heap sort queue|이진 힙 (우선순위 큐)
+Option|type std enum null wrapper|값이 있거나(Some) 없거나(None)
+Some|variant enum wrapper null|Option의 값 있음
+None|variant enum null|Option의 값 없음
+Result|type std enum err wrapper|성공(Ok) 또는 실패(Err)
+Ok|variant enum wrapper|Result의 성공
+Err|variant enum err|Result의 실패
+Box|type std smart ptr heap ownership|힙 할당 스마트 포인터
+Rc|type std smart ptr refcount ownership|참조 카운트 포인터 (단일 스레드)
+Arc|type std smart ptr refcount thread sync|원자적 참조 카운트 포인터
+~Weak|type std smart ptr refcount weak|약한 참조
+RefCell|type std interior mutable borrow runtime|런타임에 대여를 검사하는 내부 가변성
+~Cell|type std interior mutable|Copy 값의 내부 가변성
+Mutex|type std thread sync lock|뮤텍스
+~RwLock|type std thread sync lock|읽기-쓰기 락
+~Cow|type std smart borrow owned|필요할 때만 복제 (Clone on Write)
+~PhantomData|type std generic marker|쓰지 않는 타입 매개변수 표시
+Clone|trait copy derive|명시적 복제 .clone()
+Copy|trait copy derive primitive|이동 대신 비트 복사
+Debug|trait fmt derive debug|{:?} 디버그 출력
+Display|trait fmt str|{} 사용자용 출력
+Default|trait derive init|기본값 생성
+PartialEq|trait compare equality derive|== 비교
+~Eq|trait compare equality derive|완전 동치 관계
+~PartialOrd|trait compare order derive|< > 비교
+Ord|trait compare order sort derive|전순서 비교
+Hash|trait hash derive|해시 가능
+Iterator|trait iter|이터레이터
+~IntoIterator|trait iter conv|이터레이터로 변환 가능 (for 루프)
+From|trait conv|다른 타입에서 변환
+Into|trait conv|다른 타입으로 변환
+~AsRef|trait conv borrow|참조로 값싸게 변환
+Drop|trait ownership cleanup|값이 버려질 때 실행 (소멸자)
+Deref|trait smart ptr|* 역참조 연산자
+Send|trait thread marker|스레드 간 이동 가능
+Sync|trait thread marker sync|스레드 간 공유 가능
+~Sized|trait marker size|컴파일 타임에 크기가 정해짐
+Fn|trait closure func|불변 참조로 캡처하는 클로저
+~FnMut|trait closure func mutable|가변 참조로 캡처하는 클로저
+~FnOnce|trait closure func ownership|한 번만 호출 가능한 클로저
+Future|trait async|비동기 계산
+~Error|trait err|에러 트레이트
+println!|macro io out console fmt line|줄바꿈과 함께 출력
+print!|macro io out console fmt|출력
+~eprintln!|macro io out console err fmt|표준 오류에 출력
+format!|macro str fmt|서식 문자열 생성
+vec!|macro collection seq create|Vec 생성
+panic!|macro err abort|패닉 발생 (프로그램 중단)
+assert!|macro test debug cond|조건 단언
+assert_eq!|macro test debug equality|같은지 단언
+~unreachable!|macro err abort|도달하면 안 되는 코드
+todo!|macro err abort|아직 구현하지 않음 표시
+~dbg!|macro debug out|값과 위치를 디버그 출력
+~write!|macro io out fmt|버퍼에 서식 출력
+macro_rules!|macro decl meta|선언적 매크로 정의
+derive|attr derive trait meta|트레이트 자동 구현 #[derive]
+test|attr test|테스트 함수 표시 #[test]
+~cfg|attr compile cond|조건부 컴파일 #[cfg]
+~allow|attr lint|경고 허용 #[allow]
+unwrap|method option result err wrapper|값을 꺼내거나 패닉
+expect|method option result err wrapper msg|메시지와 함께 unwrap
+~unwrap_or|method option result default wrapper|없으면 기본값
+~unwrap_or_else|method option result default closure|없으면 클로저 결과
+map|method iter option closure transform|값 변환
+~and_then|method option result closure chain|이어서 Option·Result 반환
+ok_or|method option result conv|Option → Result
+is_some|method option check|Some인지
+is_none|method option check null|None인지
+~is_ok|method result check|Ok인지
+clone|method copy|값 복제
+to_string|method str conv owned|String으로 변환
+as_str|method str borrow conv|&str로 빌려오기
+~to_owned|method copy owned conv|빌린 값 → 소유한 값
+len|method size collection str|길이
+is_empty|method size check collection str|비었는지
+push|method collection seq add mutate|끝에 추가
+pop|method collection seq remove mutate|끝에서 꺼내기
+insert|method collection add mutate map|삽입
+remove|method collection remove mutate|제거
+get|method collection lookup option|조회 (Option 반환)
+contains|method collection str search check|포함 여부
+~contains_key|method map search check key|키가 있는지
+~entry|method map key mutate|엔트리 API (없으면 삽입)
+iter|method iter borrow collection|불변 참조 이터레이터
+~iter_mut|method iter borrow mutable collection|가변 참조 이터레이터
+into_iter|method iter ownership collection|소유권을 가져가는 이터레이터
+collect|method iter collection conv|이터레이터를 컬렉션으로 모으기
+filter|method iter closure cond|조건으로 거르기
+fold|method iter closure agg|누적 계산
+~sum|method iter agg num|합계
+enumerate|method iter index|(인덱스, 값) 쌍
+zip|method iter combine|두 이터레이터 묶기
+rev|method iter order reverse|역순
+~take|method iter range|앞에서 n개
+~skip|method iter range|앞에서 n개 건너뛰기
+~any|method iter bool check closure|하나라도 만족하는지
+find|method iter search closure option|조건에 맞는 첫 요소
+sort|method collection sort order mutate|제자리 정렬
+~sort_by|method collection sort order closure mutate|비교 함수로 정렬
+~dedup|method collection seq remove unique|연속 중복 제거
+split|method str split iter|구분자로 나누기
+trim|method str space|양끝 공백 제거
+parse|method str conv parse result|문자열을 다른 타입으로 파싱
+chars|method str char iter|문자 이터레이터
+~bytes|method str bytes iter|바이트 이터레이터
+~push_str|method str add mutate|문자열 덧붙이기
+lines|method str line iter|줄 단위 이터레이터
+new|fn create constructor|생성자 관례 (Type::new)
+from|fn conv create|다른 값에서 생성 (String::from)
+~with_capacity|fn create collection mem capacity|용량을 미리 잡아 생성
+~default|fn create init|기본값 생성
+lock|method thread sync lock|뮤텍스 잠금
+~borrow_mut|method interior borrow mutable runtime|RefCell 가변 대여
+~as_ref|method borrow conv option|참조로 변환
+~drop|fn ownership cleanup|값을 즉시 버리기
+main|fn entry|프로그램 진입점
+std|module stdlib|표준 라이브러리
+~io|module io|입출력 모듈
+~stdin|fn io in console|표준 입력 핸들
+read_line|method io in console line|한 줄 읽기
+spawn|fn thread concurrency create|스레드 생성
+join|method thread wait|스레드 종료 대기
+~channel|fn thread concurrency message|채널 생성 (mpsc)
+~sleep|fn thread time wait|일시 정지
+tokio|crate async runtime|비동기 런타임 크레이트
+serde|crate serial|직렬화 프레임워크 크레이트
+~anyhow|crate err|간편 에러 처리 크레이트
+cargo|tool build package|빌드 도구 · 패키지 매니저
+~rustc|tool compile|러스트 컴파일러
+~clippy|tool lint|린트 도구
+~rustfmt|tool fmt|코드 포매터
 `};
