@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>뎁맨틀</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1><span>뎁맨틀</span><i class="caret" aria-hidden="true"></i></h1>
+    <p>// 오늘의 식별자 추측 게임</p>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="언어"></nav>
+
+  <section class="pane" role="tabpanel">
+    <p class="meta" id="meta"></p>
+    <form id="form" autocomplete="off">
+      <div class="field">
+        <label class="ps" id="ps" for="guess"></label>
+        <input id="guess" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send">
+        <button type="button" class="icon" id="hint" aria-label="힌트" title="힌트">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
+        </button>
+        <button type="button" class="icon" id="giveup" aria-label="포기하기" title="포기하기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>
+        </button>
+      </div>
+      <button type="submit" class="go">제출</button>
+    </form>
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    <div id="result" hidden></div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <section class="help">
+    <h2>도움말</h2>
+    <details open>
+      <summary>어떻게 플레이하나요?</summary>
+      <div><ol>
+        <li>위 탭에서 언어를 고르세요. 언어마다 정답이 따로 있어요.</li>
+        <li>그 언어의 함수, 키워드, 타입, 메서드 이름을 입력하세요.</li>
+        <li>유사도(0~100)와 순위를 보고 정답에 더 가까운 식별자를 추측하세요. 정답의 유사도는 100이에요.</li>
+        <li>힌트는 3번까지 쓸 수 있어요. 지금까지 찾은 것보다 순위가 높은 식별자를 하나 알려줘요.</li>
+      </ol></div>
+    </details>
+    <details>
+      <summary>유사도는 어떻게 계산되나요?</summary>
+      <div>
+        <p>식별자마다 하는 일을 나타내는 태그가 붙어 있어요. 예를 들어 <code>malloc</code>에는 <code>mem alloc heap ptr stdlib</code>가 붙어요.</p>
+        <p>유사도 = 태그 코사인 유사도 80% + 이름 철자 유사도 20%예요. 태그 코사인은 드문 태그일수록 가중치가 크고, 자주 같이 붙는 태그끼리는 서로 조금씩 가깝게 쳐요. 그래서 <code>strcpy</code>는 <code>strncpy</code>와 아주 가깝고, <code>memcpy</code>와는 조금 가깝고, <code>printf</code>와는 멀어요.</p>
+      </div>
+    </details>
+    <details>
+      <summary>어떤 식별자가 사전에 있나요?</summary>
+      <div><ul>
+        <li><b>C</b>: 키워드, 표준 라이브러리(stdio, stdlib, string, ctype, math, time), 전처리기, POSIX 일부</li>
+        <li><b>C++</b>: 키워드, STL 컨테이너·알고리즘, iostream, 스마트 포인터, 스레드</li>
+        <li><b>Python</b>: 키워드, 내장 함수, 매직 메서드, 자주 쓰는 메서드·예외·표준 모듈</li>
+        <li><b>JavaScript</b>: 키워드, 전역 객체, 배열·문자열 메서드, DOM API, Node 일부</li>
+        <li><b>Java</b>: 키워드, java.lang·java.util 클래스, 자주 쓰는 메서드</li>
+      </ul>
+      <p style="margin-top:8px"><code>printf()</code>, <code>#include</code>, <code>@Override</code>, <code>System.out.println</code>, <code>std::vector&lt;int&gt;</code>처럼 입력해도 알아서 찾아요.</p></div>
+    </details>
+    <details>
+      <summary>다른 문제를 풀고 싶어요.</summary>
+      <div><p>정답은 매일 00시에 언어별로 바뀌어요. 다른 언어 탭에도 도전해보세요.</p></div>
+    </details>
+  </section>
+</main>
+<script src="words.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

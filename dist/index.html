@@ -1,0 +1,1544 @@
+<title>뎁맨틀</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root {
+  --bg: #f2f3f6;
+  --surface: #ffffff;
+  --ink: #151922;
+  --muted: #5f6778;
+  --line: #dcdfe6;
+  --soft: #eceef3;
+  --accent: #2c4bd6;
+  --hot: #d23f28;
+  --bar: #c3cadb;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1116; --surface: #161920; --ink: #e6e8ee; --muted: #979eac; --line: #2a2e38;
+    --soft: #1e222b; --accent: #8198ff; --hot: #ff7b61; --bar: #3a4155; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1116; --surface: #161920; --ink: #e6e8ee; --muted: #979eac; --line: #2a2e38;
+  --soft: #1e222b; --accent: #8198ff; --hot: #ff7b61; --bar: #3a4155; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 var(--sans); }
+code { font-family: var(--mono); }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.wrap { max-width: 660px; margin: 0 auto; padding-inline: 16px; padding-block: 40px 72px; }
+
+header h1 { margin: 0; font: 700 1.9rem/1.2 var(--sans); letter-spacing: -0.02em; text-wrap: balance; }
+header h1 span { color: var(--accent); }
+.caret { display: inline-block; width: .5em; height: .95em; margin-left: .12em; vertical-align: -0.1em; background: var(--accent); animation: blink 1.1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+header p { margin: 6px 0 0; font: 13px var(--mono); color: var(--muted); }
+
+.tabs { display: flex; margin-top: 28px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.tab { display: flex; align-items: center; gap: 8px; padding: 9px 14px; margin-bottom: -1px; white-space: nowrap;
+  font: 500 13px var(--mono); color: var(--muted); background: none; border: 1px solid transparent; border-bottom: 0; border-radius: 7px 7px 0 0; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { background: var(--surface); border-color: var(--line); color: var(--ink); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--dot); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .15); }
+.tab.done::after { content: "✓"; color: var(--accent); font-weight: 600; }
+
+.pane { background: var(--surface); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px; padding: 18px 18px 8px; }
+.meta { margin: 0 0 12px; font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+form { display: flex; gap: 8px; }
+.field { flex: 1; min-width: 0; display: flex; align-items: center; padding-left: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.ps { font: 500 14px var(--mono); color: var(--accent); white-space: nowrap; user-select: none; }
+#guess { flex: 1; min-width: 0; padding: 11px 8px; border: 0; background: transparent; color: var(--ink); font: 15px var(--mono); outline: none; }
+#guess::placeholder { color: var(--muted); opacity: .7; }
+.icon { display: grid; place-items: center; width: 36px; height: 36px; flex: none; background: none; border: 0; border-radius: 6px; color: var(--muted); }
+.icon:hover { color: var(--ink); background: var(--soft); }
+.icon svg { width: 19px; height: 19px; }
+.icon.armed { color: var(--hot); }
+.go { flex: none; padding: 0 18px; border: 0; border-radius: 8px; background: var(--ink); color: var(--surface); font-weight: 700; }
+
+.msg { min-height: 1.5em; margin: 8px 0 4px; font-size: 13px; color: var(--muted); }
+.msg.err { color: var(--hot); }
+.msg code { color: var(--ink); }
+
+.result { margin-block: 8px 18px; padding: 18px; border: 1px solid var(--accent); border-radius: 10px; background: color-mix(in srgb, var(--accent) 6%, var(--surface)); }
+.result .kicker { margin: 0; font: 600 12px var(--mono); color: var(--accent); }
+.result .answer { margin: 4px 0 0; font: 600 1.8rem/1.25 var(--mono); word-break: break-all; }
+.result .desc { margin: 2px 0 10px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; padding: 0; list-style: none; }
+.tags li { padding: 1px 7px; font: 12px var(--mono); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.result h3 { margin: 0 0 6px; font: 500 12px var(--mono); color: var(--muted); }
+.near { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 2px 20px; margin: 0; padding: 0; list-style: none; font: 13px var(--mono); font-variant-numeric: tabular-nums; }
+.near li { display: flex; gap: 8px; }
+.near b { width: 1.6em; font-weight: 400; color: var(--muted); text-align: right; }
+.near code { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.near span { color: var(--muted); }
+.result .next { margin: 14px 0 0; font-size: 12px; color: var(--muted); }
+
+.board { font-variant-numeric: tabular-nums; }
+.row { display: grid; grid-template-columns: 2.2rem 1fr 4.4rem 6rem; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--soft); }
+.row.head { padding-block: 6px; border: 0; font: 12px var(--mono); color: var(--muted); }
+.row.head span:nth-child(n+3) { text-align: right; }
+.row.latest { margin-inline: -10px; padding-inline: 10px; background: var(--soft); border-radius: 7px; border: 0; margin-bottom: 6px; }
+.n { font: 12px var(--mono); color: var(--muted); }
+.id { min-width: 0; }
+.id code { font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
+.id small { display: block; font-size: 12px; line-height: 1.4; color: var(--muted); }
+.chip { margin-left: 6px; padding: 0 5px; font: normal 11px var(--sans); color: var(--accent); border: 1px solid currentColor; border-radius: 4px; vertical-align: 2px; }
+.sc { text-align: right; font: 14px var(--mono); }
+.rk { text-align: right; font: 12px var(--mono); color: var(--muted); }
+.rk i { position: relative; display: block; height: 4px; margin-top: 5px; overflow: hidden; background: var(--soft); border-radius: 2px; }
+.latest .rk i { background: var(--surface); }
+.rk i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--bar); }
+.hot .rk { color: var(--hot); }
+.hot .rk i::after { background: var(--hot); }
+.win code, .win .rk, .win .sc { color: var(--accent); font-weight: 600; }
+.win .rk i::after { background: var(--accent); }
+.flash { animation: flash .9s ease-out; }
+@keyframes flash { from { background: color-mix(in srgb, var(--accent) 22%, transparent); } }
+.result.pop { animation: pop .6s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes pop { from { transform: scale(.94); opacity: 0; } }
+.confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+.empty { padding: 28px 0 22px; text-align: center; color: var(--muted); font-size: 14px; }
+
+.help { margin-top: 44px; }
+.help h2 { margin: 0 0 6px; font-size: 1.1rem; }
+details { border-bottom: 1px solid var(--line); }
+summary { padding: 11px 0; font-weight: 500; cursor: pointer; }
+details > div { padding-bottom: 14px; color: var(--muted); font-size: 14px; }
+details ol, details ul { margin: 0; padding-left: 1.3em; }
+details p { margin: 0 0 8px; }
+details code { color: var(--ink); font-size: 13px; }
+
+@media (max-width: 480px) {
+  header h1 { font-size: 1.6rem; }
+  .pane { padding-inline: 12px; }
+  .row { grid-template-columns: 1.6rem 1fr 3.9rem 4.6rem; gap: 8px; }
+  .row.latest { margin-inline: -6px; padding-inline: 6px; }
+  .go { padding: 0 14px; }
+  .icon { width: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret, .flash { animation: none; }
+}
+</style>
+
+<main class="wrap">
+  <header>
+    <h1><span>뎁맨틀</span><i class="caret" aria-hidden="true"></i></h1>
+    <p>// 오늘의 식별자 추측 게임</p>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="언어"></nav>
+
+  <section class="pane" role="tabpanel">
+    <p class="meta" id="meta"></p>
+    <form id="form" autocomplete="off">
+      <div class="field">
+        <label class="ps" id="ps" for="guess"></label>
+        <input id="guess" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send">
+        <button type="button" class="icon" id="hint" aria-label="힌트" title="힌트">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
+        </button>
+        <button type="button" class="icon" id="giveup" aria-label="포기하기" title="포기하기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>
+        </button>
+      </div>
+      <button type="submit" class="go">제출</button>
+    </form>
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    <div id="result" hidden></div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <section class="help">
+    <h2>도움말</h2>
+    <details open>
+      <summary>어떻게 플레이하나요?</summary>
+      <div><ol>
+        <li>위 탭에서 언어를 고르세요. 언어마다 정답이 따로 있어요.</li>
+        <li>그 언어의 함수, 키워드, 타입, 메서드 이름을 입력하세요.</li>
+        <li>유사도(0~100)와 순위를 보고 정답에 더 가까운 식별자를 추측하세요. 정답의 유사도는 100이에요.</li>
+        <li>힌트는 3번까지 쓸 수 있어요. 지금까지 찾은 것보다 순위가 높은 식별자를 하나 알려줘요.</li>
+      </ol></div>
+    </details>
+    <details>
+      <summary>유사도는 어떻게 계산되나요?</summary>
+      <div>
+        <p>식별자마다 하는 일을 나타내는 태그가 붙어 있어요. 예를 들어 <code>malloc</code>에는 <code>mem alloc heap ptr stdlib</code>가 붙어요.</p>
+        <p>유사도 = 태그 코사인 유사도 80% + 이름 철자 유사도 20%예요. 태그 코사인은 드문 태그일수록 가중치가 크고, 자주 같이 붙는 태그끼리는 서로 조금씩 가깝게 쳐요. 그래서 <code>strcpy</code>는 <code>strncpy</code>와 아주 가깝고, <code>memcpy</code>와는 조금 가깝고, <code>printf</code>와는 멀어요.</p>
+      </div>
+    </details>
+    <details>
+      <summary>어떤 식별자가 사전에 있나요?</summary>
+      <div><ul>
+        <li><b>C</b>: 키워드, 표준 라이브러리(stdio, stdlib, string, ctype, math, time), 전처리기, POSIX 일부</li>
+        <li><b>C++</b>: 키워드, STL 컨테이너·알고리즘, iostream, 스마트 포인터, 스레드</li>
+        <li><b>Python</b>: 키워드, 내장 함수, 매직 메서드, 자주 쓰는 메서드·예외·표준 모듈</li>
+        <li><b>JavaScript</b>: 키워드, 전역 객체, 배열·문자열 메서드, DOM API, Node 일부</li>
+        <li><b>Java</b>: 키워드, java.lang·java.util 클래스, 자주 쓰는 메서드</li>
+      </ul>
+      <p style="margin-top:8px"><code>printf()</code>, <code>#include</code>, <code>@Override</code>, <code>System.out.println</code>, <code>std::vector&lt;int&gt;</code>처럼 입력해도 알아서 찾아요.</p></div>
+    </details>
+    <details>
+      <summary>다른 문제를 풀고 싶어요.</summary>
+      <div><p>정답은 매일 00시에 언어별로 바뀌어요. 다른 언어 탭에도 도전해보세요.</p></div>
+    </details>
+  </section>
+</main>
+<script>
+// name|tags|description  (~ = never picked as the answer)
+const RAW = {
+c: `
+auto|kw storage var local|자동 저장 기간 지역 변수 지정자
+register|kw storage var local opt|레지스터에 두라는 저장 힌트
+static|kw storage var scope linkage|정적 저장 기간 · 내부 링크
+extern|kw storage var scope linkage decl|다른 파일에 정의된 이름 선언
+const|kw qualifier readonly|읽기 전용 한정자
+volatile|kw qualifier hw opt|최적화로 접근을 생략하지 말라는 한정자
+~restrict|kw qualifier ptr opt|포인터 별칭이 없음을 약속하는 한정자
+inline|kw func opt|함수 인라인 확장 힌트
+typedef|kw type alias decl|타입에 새 이름 붙이기
+struct|kw type compound member|구조체
+union|kw type compound member mem|멤버가 메모리를 공유하는 공용체
+enum|kw type int const|열거형
+sizeof|kw op size mem type|타입·객체의 바이트 크기
+void|kw type func ptr|값 없음 / 범용 포인터
+char|kw type int char|문자 · 1바이트 정수형
+short|kw type int|짧은 정수형
+int|kw type int num|기본 정수형
+long|kw type int num|긴 정수형
+float|kw type float num|단정도 실수형
+double|kw type float num|배정도 실수형
+signed|kw type int sign|부호 있는 정수 지정
+unsigned|kw type int sign|부호 없는 정수 지정
+bool|type bool cond macro|stdbool.h 불리언 타입
+true|const bool cond macro|stdbool.h 참
+false|const bool cond macro|stdbool.h 거짓
+if|kw cond branch control|조건 분기
+else|kw cond branch control|if가 거짓일 때
+switch|kw branch control case|정수 값에 따른 다중 분기
+case|kw branch control case label|switch의 분기 레이블
+default|kw branch control case label|switch의 기본 분기
+for|kw loop control|초기식·조건식·증감식 반복문
+while|kw loop control cond|조건 반복문
+do|kw loop control|한 번은 실행하는 do-while 반복문
+break|kw control jump loop case|반복문·switch 탈출
+continue|kw control jump loop|다음 반복으로 건너뛰기
+goto|kw control jump label|레이블로 무조건 점프
+return|kw control jump func|함수에서 값 반환
+main|func entry proc args|프로그램 진입점
+NULL|macro const ptr null|널 포인터 상수
+EOF|macro const io stream end|파일 끝을 나타내는 값 (-1)
+size_t|type int unsigned size mem|크기를 나타내는 부호 없는 정수형
+~ptrdiff_t|type int sign ptr arith|포인터 차이 정수형
+FILE|type io stream file|스트림 객체 타입
+uint8_t|type int unsigned fixed byte|8비트 부호 없는 정수
+int32_t|type int sign fixed|32비트 부호 있는 정수
+uint32_t|type int unsigned fixed|32비트 부호 없는 정수
+int64_t|type int sign fixed|64비트 부호 있는 정수
+~uint64_t|type int unsigned fixed|64비트 부호 없는 정수
+~intptr_t|type int ptr fixed|포인터를 담을 수 있는 정수
+time_t|type time int|달력 시간 타입
+va_list|type varargs func|가변 인자 목록 타입
+~wchar_t|type char wide|와이드 문자 타입
+~pid_t|type posix proc id|프로세스 ID 타입
+EXIT_SUCCESS|macro const proc exit status|성공 종료 코드
+EXIT_FAILURE|macro const proc exit status err|실패 종료 코드
+RAND_MAX|macro const rand num limit|rand()의 최댓값
+~CLOCKS_PER_SEC|macro const time clock|초당 clock 틱 수
+INT_MAX|macro const int limit|int의 최댓값
+printf|fn stdio io out fmt console|서식 지정 표준 출력
+fprintf|fn stdio io out fmt stream file|스트림에 서식 출력
+sprintf|fn stdio out fmt str buf|문자열 버퍼에 서식 출력
+snprintf|fn stdio out fmt str buf size safe|크기 제한 문자열 서식 출력
+~vprintf|fn stdio io out fmt varargs console|va_list로 서식 출력
+scanf|fn stdio io in fmt console parse|서식 지정 표준 입력
+fscanf|fn stdio io in fmt stream file parse|스트림에서 서식 입력
+sscanf|fn stdio in fmt str parse|문자열에서 서식 입력
+puts|fn stdio io out str console line|문자열과 개행 출력
+fputs|fn stdio io out str stream file|스트림에 문자열 출력
+gets|fn stdio io in str console line unsafe|한 줄 입력 (C11에서 제거됨)
+fgets|fn stdio io in str stream file line buf safe|스트림에서 한 줄 입력
+putchar|fn stdio io out char console|문자 하나 출력
+getchar|fn stdio io in char console|문자 하나 입력
+~fputc|fn stdio io out char stream file|스트림에 문자 출력
+fgetc|fn stdio io in char stream file|스트림에서 문자 입력
+~getc|fn stdio io in char stream|스트림에서 문자 입력 (매크로 가능)
+~putc|fn stdio io out char stream|스트림에 문자 출력 (매크로 가능)
+~ungetc|fn stdio io in char stream|문자를 스트림에 되돌리기
+fopen|fn stdio io stream file open mode|파일 스트림 열기
+fclose|fn stdio io stream file close|파일 스트림 닫기
+fread|fn stdio io in stream file binary buf|바이너리 블록 읽기
+fwrite|fn stdio io out stream file binary buf|바이너리 블록 쓰기
+fseek|fn stdio io stream file pos|파일 위치 이동
+ftell|fn stdio io stream file pos|현재 파일 위치
+~rewind|fn stdio io stream file pos|파일 처음으로 되감기
+fflush|fn stdio io out stream buf|출력 버퍼 비우기
+feof|fn stdio io stream file end|파일 끝 도달 여부
+~ferror|fn stdio io stream file err|스트림 오류 여부
+perror|fn stdio out err errno msg|errno 오류 메시지 출력
+remove|fn stdio file delete|파일 삭제
+rename|fn stdio file name|파일 이름 변경
+stdin|macro stdio io in stream console|표준 입력 스트림
+stdout|macro stdio io out stream console|표준 출력 스트림
+stderr|macro stdio io out stream console err|표준 오류 스트림
+malloc|fn stdlib mem alloc heap ptr|힙 메모리 할당
+calloc|fn stdlib mem alloc heap ptr zero|0으로 초기화된 배열 할당
+realloc|fn stdlib mem alloc heap ptr resize|할당 크기 변경
+free|fn stdlib mem heap ptr dealloc|힙 메모리 해제
+atoi|fn stdlib conv str int parse|문자열 → int
+atof|fn stdlib conv str float parse|문자열 → double
+~atol|fn stdlib conv str int parse|문자열 → long
+strtol|fn stdlib conv str int parse base|진법 지정 문자열 → long
+~strtoul|fn stdlib conv str int parse base unsigned|문자열 → unsigned long
+strtod|fn stdlib conv str float parse|문자열 → double (끝 위치 반환)
+rand|fn stdlib rand num|의사 난수 생성
+srand|fn stdlib rand seed|난수 시드 설정
+qsort|fn stdlib sort array cmp callback|비교 함수로 배열 정렬
+bsearch|fn stdlib search array cmp callback|정렬된 배열 이진 탐색
+abs|fn stdlib math int abs|정수 절댓값
+~div|fn stdlib math int|몫과 나머지를 구조체로 반환
+exit|fn stdlib proc exit status|프로그램 정상 종료
+abort|fn stdlib proc exit err signal|프로그램 비정상 종료
+atexit|fn stdlib proc exit callback|종료 시 호출할 함수 등록
+getenv|fn stdlib proc env str|환경 변수 읽기
+system|fn stdlib proc shell exec|셸 명령 실행
+strlen|fn string str len|문자열 길이
+strcpy|fn string str copy|문자열 복사
+strncpy|fn string str copy size|최대 n자 문자열 복사
+strcat|fn string str concat|문자열 이어 붙이기
+strncat|fn string str concat size|최대 n자 이어 붙이기
+strcmp|fn string str cmp|문자열 비교
+strncmp|fn string str cmp size|앞 n자 문자열 비교
+strchr|fn string str search char|문자가 처음 나오는 위치
+strrchr|fn string str search char reverse|문자가 마지막으로 나오는 위치
+strstr|fn string str search substr|부분 문자열 찾기
+strtok|fn string str split token|구분자로 토큰 분리
+strdup|fn string str copy alloc heap|문자열을 힙에 복제
+strerror|fn string str err errno msg|오류 번호 → 메시지
+~strspn|fn string str search len|허용 문자로만 된 앞부분 길이
+~strcspn|fn string str search len|금지 문자 전까지의 길이
+~strpbrk|fn string str search char|문자 집합 중 첫 등장 위치
+memcpy|fn string mem copy buf|메모리 블록 복사
+memmove|fn string mem copy buf overlap|겹쳐도 안전한 메모리 복사
+memset|fn string mem buf fill|메모리를 한 바이트 값으로 채우기
+memcmp|fn string mem cmp buf|메모리 블록 비교
+~memchr|fn string mem search char buf|메모리에서 바이트 찾기
+isalpha|fn ctype char classify alpha|알파벳인지
+isdigit|fn ctype char classify digit|숫자 문자인지
+isalnum|fn ctype char classify alpha digit|알파벳 또는 숫자인지
+isspace|fn ctype char classify space|공백 문자인지
+isupper|fn ctype char classify case|대문자인지
+islower|fn ctype char classify case|소문자인지
+toupper|fn ctype char conv case|대문자로 변환
+tolower|fn ctype char conv case|소문자로 변환
+~ispunct|fn ctype char classify|구두점인지
+~isxdigit|fn ctype char classify digit hex|16진 숫자인지
+sqrt|fn mathh math float root|제곱근
+pow|fn mathh math float power|거듭제곱
+fabs|fn mathh math float abs|실수 절댓값
+floor|fn mathh math float round|내림
+ceil|fn mathh math float round|올림
+round|fn mathh math float round|반올림
+sin|fn mathh math float trig|사인
+cos|fn mathh math float trig|코사인
+tan|fn mathh math float trig|탄젠트
+atan2|fn mathh math float trig angle|y/x의 아크탄젠트
+exp|fn mathh math float exp|e의 거듭제곱
+log|fn mathh math float exp log|자연로그
+log10|fn mathh math float log|상용로그
+fmod|fn mathh math float mod|실수 나머지
+~hypot|fn mathh math float root|빗변 길이
+time|fn timeh time now|현재 달력 시간
+clock|fn timeh time clock cpu|프로세서 사용 시간
+difftime|fn timeh time diff|두 시간의 차이(초)
+localtime|fn timeh time conv tm|지역 시간 구조체로 변환
+~gmtime|fn timeh time conv tm utc|UTC 시간 구조체로 변환
+strftime|fn timeh time fmt str|시간을 서식 문자열로
+~mktime|fn timeh time conv tm|tm 구조체 → time_t
+sleep|fn posix time wait proc|초 단위 대기
+~usleep|fn posix time wait proc|마이크로초 단위 대기
+assert|macro debug err cond abort|조건 검사, 실패 시 중단
+setjmp|fn jump nonlocal ctx|점프할 지점 저장
+longjmp|fn jump nonlocal ctx|저장한 지점으로 점프
+signal|fn signal handler proc callback|시그널 핸들러 등록
+~raise|fn signal proc|자신에게 시그널 보내기
+va_start|macro varargs func|가변 인자 접근 시작
+va_arg|macro varargs func|다음 가변 인자 꺼내기
+va_end|macro varargs func|가변 인자 접근 끝
+errno|macro err errno global|마지막 오류 번호
+include|pp header file|헤더 파일 포함
+define|pp macro const|매크로 정의
+ifdef|pp cond macro|매크로가 정의돼 있으면
+ifndef|pp cond macro guard|매크로가 없으면 (인클루드 가드)
+endif|pp cond|조건부 컴파일 끝
+pragma|pp compiler opt|컴파일러 지시문
+~undef|pp macro|매크로 정의 해제
+fork|fn posix proc create child|프로세스 복제
+execvp|fn posix proc exec|다른 프로그램으로 교체 실행
+pipe|fn posix proc ipc fd|프로세스 간 파이프 생성
+read|fn posix io in fd|파일 디스크립터에서 읽기
+write|fn posix io out fd|파일 디스크립터에 쓰기
+open|fn posix io file fd open|파일 열기 (디스크립터)
+close|fn posix io file fd close|파일 디스크립터 닫기
+getpid|fn posix proc id|현재 프로세스 ID
+waitpid|fn posix proc wait child|자식 프로세스 종료 대기
+kill|fn posix proc signal|프로세스에 시그널 보내기
+pthread_create|fn pthread thread create|스레드 생성
+pthread_join|fn pthread thread wait|스레드 종료 대기
+pthread_mutex_lock|fn pthread thread sync lock|뮤텍스 잠금
+~pthread_mutex_unlock|fn pthread thread sync lock|뮤텍스 잠금 해제
+socket|fn posix net sock fd create|소켓 생성
+bind|fn posix net sock addr|소켓에 주소 할당
+listen|fn posix net sock server|연결 대기 상태로 전환
+accept|fn posix net sock server conn|연결 수락
+connect|fn posix net sock client conn|서버에 연결
+send|fn posix net sock out|소켓으로 전송
+recv|fn posix net sock in|소켓에서 수신
+~select|fn posix io fd multiplex|여러 디스크립터 감시
+mmap|fn posix mem map file|파일·메모리 매핑
+~dup2|fn posix io fd redirect|디스크립터 복제 · 리다이렉트
+`,
+cpp: `
+class|kw oop class decl|클래스 선언
+struct|kw oop class decl data|기본 접근이 public인 클래스 선언
+public|kw access oop visibility|어디서나 접근 가능
+private|kw access oop visibility encapsulation|클래스 안에서만 접근
+protected|kw access oop visibility inherit|하위 클래스까지 접근
+virtual|kw oop inherit poly dispatch|가상 함수 (동적 바인딩)
+override|kw oop inherit poly check|가상 함수 재정의 명시
+final|kw oop inherit|더 이상 재정의·상속 금지
+friend|kw oop access encapsulation|private 멤버 접근 허용
+this|kw oop instance ptr|현재 객체를 가리키는 포인터
+new|kw mem alloc heap ptr create|동적 할당 후 생성자 호출
+delete|kw mem heap ptr dealloc|소멸자 호출 후 메모리 해제
+namespace|kw scope name decl|이름 공간 선언
+using|kw scope name alias|using 선언 / 타입 별칭
+template|kw generic type decl|템플릿 선언
+typename|kw generic type|템플릿 타입 매개변수 / 의존 타입 표시
+auto|kw type infer|타입 추론
+decltype|kw type infer expr|식의 타입 추론
+const|kw qualifier readonly|읽기 전용 한정자
+constexpr|kw compile const eval|컴파일 타임 상수·함수
+~consteval|kw compile eval func|반드시 컴파일 타임에 평가 (C++20)
+static|kw storage scope member|정적 저장 기간 / 클래스 정적 멤버
+extern|kw storage linkage decl|외부 링크 선언
+inline|kw func opt linkage|인라인 함수·변수
+~mutable|kw qualifier member|const 객체 안에서도 수정 가능한 멤버
+volatile|kw qualifier opt hw|최적화로 접근을 생략하지 않음
+explicit|kw oop ctor conv|암시적 변환을 막는 생성자
+operator|kw oop overload op|연산자 오버로딩
+noexcept|kw exc func check|예외를 던지지 않음 표시
+static_cast|kw cast conv type|컴파일 타임 형변환
+dynamic_cast|kw cast conv type poly runtime|런타임 검사 다운캐스트
+~const_cast|kw cast conv qualifier|const 제거·추가
+reinterpret_cast|kw cast conv ptr bits|비트 단위 재해석 형변환
+~typeid|kw type runtime reflect|런타임 타입 정보
+sizeof|kw op size mem type|바이트 크기
+nullptr|kw const ptr null|널 포인터 리터럴
+true|kw const bool|참
+false|kw const bool|거짓
+if|kw cond branch control|조건 분기
+else|kw cond branch control|if가 거짓일 때
+switch|kw branch control case|다중 분기
+case|kw branch control case label|switch 분기 레이블
+default|kw branch control case label|switch 기본 분기 / = default
+for|kw loop control iter|반복문 (범위 기반 for 포함)
+while|kw loop control cond|조건 반복문
+do|kw loop control|do-while 반복문
+break|kw control jump loop case|반복문·switch 탈출
+continue|kw control jump loop|다음 반복으로
+return|kw control jump func|함수에서 값 반환
+~goto|kw control jump label|레이블로 점프
+try|kw exc err handle control|예외 처리 블록
+catch|kw exc err handle|예외 잡기
+throw|kw exc err|예외 던지기
+enum|kw type int const|열거형 (enum class)
+union|kw type compound mem|공용체
+typedef|kw type alias decl|C 스타일 타입 별칭
+void|kw type func|값 없음
+int|kw type int num|정수형
+char|kw type int char|문자형
+bool|kw type bool|불리언형
+double|kw type float num|배정도 실수형
+float|kw type float num|단정도 실수형
+long|kw type int num|긴 정수형
+unsigned|kw type int sign|부호 없는 정수 지정
+~concept|kw generic constraint|템플릿 제약 정의 (C++20)
+~requires|kw generic constraint|템플릿 제약 조건 (C++20)
+~co_await|kw async coroutine wait|코루틴 대기 (C++20)
+main|func entry proc|프로그램 진입점
+std|scope name stdlib|표준 라이브러리 네임스페이스
+size_t|type int unsigned size|크기를 나타내는 정수형
+cout|obj io out console stream|표준 출력 스트림
+cin|obj io in console stream|표준 입력 스트림
+cerr|obj io out console stream err|표준 오류 스트림
+endl|manip io out stream line flush|개행 후 버퍼 비우기
+getline|fn io in stream line str|한 줄 읽기
+ifstream|class io in file stream|파일 입력 스트림
+ofstream|class io out file stream|파일 출력 스트림
+~fstream|class io in out file stream|파일 입출력 스트림
+stringstream|class io str stream parse|문자열 스트림
+~setw|manip io out fmt|출력 폭 지정
+~setprecision|manip io out fmt float|소수 자릿수 지정
+~ios_base|class io stream base|스트림 기반 클래스
+printf|fn io out fmt console cstdio|C 스타일 서식 출력
+string|class str text|문자열 클래스
+~string_view|class str text view|소유하지 않는 문자열 뷰 (C++17)
+to_string|fn str conv num|숫자 → 문자열
+stoi|fn str conv int parse|문자열 → int
+~stod|fn str conv float parse|문자열 → double
+substr|method str range copy|부분 문자열
+find|fn method algorithm str search range index|값 찾기 (std::find / string::find)
+~npos|const str search|찾지 못했음을 뜻하는 값
+c_str|method str conv ptr char|C 문자열 포인터
+length|method str size|문자열 길이
+append|method str add mutate|문자열 덧붙이기
+vector|class container seq array dynamic|동적 배열
+array|class container seq array fixed|고정 크기 배열
+list|class container seq node|양방향 연결 리스트
+~forward_list|class container seq node|단방향 연결 리스트
+deque|class container seq queue|양끝 삽입이 빠른 큐
+map|class container assoc key sort tree|정렬된 키-값 맵
+unordered_map|class container assoc key hash|해시 키-값 맵
+set|class container assoc unique sort tree|정렬된 집합
+unordered_set|class container assoc unique hash|해시 집합
+~multimap|class container assoc key sort tree|중복 키를 허용하는 맵
+stack|class adapter container lifo|스택 어댑터
+queue|class adapter container queue fifo|큐 어댑터
+priority_queue|class adapter container queue heap sort|우선순위 큐
+pair|class tuple data|두 값의 쌍
+tuple|class tuple data|여러 값의 묶음
+~bitset|class container bits fixed|고정 크기 비트 집합
+optional|class wrapper null|값이 없을 수도 있는 래퍼 (C++17)
+variant|class wrapper type union|타입 안전 공용체 (C++17)
+~any|class wrapper type|아무 타입이나 담는 객체 (C++17)
+~span|class view seq array|연속 메모리 뷰 (C++20)
+push_back|method container seq add mutate end|끝에 추가
+emplace_back|method container seq add mutate end construct|끝에 제자리 생성
+pop_back|method container seq remove mutate end|끝 요소 제거
+push_front|method container seq add mutate start|앞에 추가
+~pop_front|method container seq remove mutate start|앞 요소 제거
+push|method adapter add mutate|스택·큐에 넣기
+pop|method adapter remove mutate|스택·큐에서 빼기
+top|method adapter access lifo heap|스택·우선순위 큐의 맨 위
+front|method container access start|첫 요소
+back|method container access end|마지막 요소
+insert|method container add mutate|삽입
+emplace|method container add mutate construct|제자리 생성 삽입
+erase|method container remove mutate|요소 제거
+clear|method container remove mutate|모두 비우기
+size|method container size|요소 개수
+empty|method container size check|비었는지
+begin|method iter container start|시작 반복자
+end|method iter container end|끝 반복자
+~rbegin|method iter container reverse|역방향 시작 반복자
+at|method container access index check|범위를 검사하는 접근
+~data|method container ptr array|내부 배열 포인터
+reserve|method container mem capacity|용량 미리 확보
+resize|method container size mutate|크기 변경
+~capacity|method container mem capacity|확보된 용량
+count|fn method algorithm assoc search key|개수 세기 / 키 존재 확인
+contains|method assoc search key check|키가 있는지 (C++20)
+~first|member pair data|pair의 첫 번째 값
+~second|member pair data|pair의 두 번째 값
+swap|fn mutate exchange|두 값 교환
+iterator|type iter container|반복자 타입
+~advance|fn iter move|반복자를 n칸 이동
+~distance|fn iter count|두 반복자 사이 거리
+~next|fn iter move|다음 위치의 반복자
+sort|fn algorithm sort order range|정렬
+~stable_sort|fn algorithm sort order range stable|안정 정렬
+reverse|fn algorithm order range mutate|뒤집기
+find_if|fn algorithm search range pred|조건에 맞는 첫 요소
+~count_if|fn algorithm count range pred|조건에 맞는 개수
+binary_search|fn algorithm search sort range|이진 탐색 (존재 여부)
+lower_bound|fn algorithm search sort range bound|값 이상인 첫 위치
+upper_bound|fn algorithm search sort range bound|값 초과인 첫 위치
+max|fn algorithm math cmp|최댓값
+min|fn algorithm math cmp|최솟값
+max_element|fn algorithm cmp range|최댓값 위치
+~min_element|fn algorithm cmp range|최솟값 위치
+accumulate|fn numeric algorithm agg range|누적 합
+~iota|fn numeric range fill|연속 값으로 채우기
+transform|fn algorithm range functional|변환해서 저장
+for_each|fn algorithm range functional loop|각 요소에 함수 적용
+copy|fn algorithm range copy|구간 복사
+fill|fn algorithm range mutate|값으로 채우기
+unique|fn algorithm range remove dedupe|연속 중복 제거
+~remove_if|fn algorithm range remove pred|조건 맞는 요소를 뒤로 보내기
+~next_permutation|fn algorithm order combinatorics|다음 순열
+~all_of|fn algorithm range pred bool|모두 조건을 만족하는지
+unique_ptr|class smart ptr mem ownership raii|단독 소유 스마트 포인터
+shared_ptr|class smart ptr mem ownership refcount|공유 소유 스마트 포인터
+weak_ptr|class smart ptr mem refcount weak|약한 참조 스마트 포인터
+make_unique|fn smart ptr mem create factory|unique_ptr 생성
+make_shared|fn smart ptr mem create factory refcount|shared_ptr 생성
+move|fn semantics rvalue ownership|rvalue로 캐스팅 (이동)
+forward|fn semantics rvalue generic|완벽한 전달
+~malloc|fn mem alloc heap ptr cstdlib|C 스타일 메모리 할당
+get|method smart ptr access tuple|원시 포인터 얻기 / tuple 요소 꺼내기
+reset|method smart ptr mutate ownership|관리 대상 교체·해제
+~release|method smart ptr ownership|소유권 포기
+function|class functional callable wrapper|호출 가능한 객체 래퍼
+lambda|functional anon callable|람다 식 [](){}
+bind|fn functional callable|인자를 고정한 함수 객체
+~invoke|fn functional callable|호출 가능한 것을 호출
+exception|class exc err base|표준 예외 기반 클래스
+runtime_error|class exc err runtime|런타임 오류 예외
+out_of_range|class exc err index|범위 밖 접근 예외
+~invalid_argument|class exc err args|잘못된 인자 예외
+what|method exc err msg|예외 메시지
+thread|class thread concurrency|스레드
+mutex|class thread sync lock|뮤텍스
+lock_guard|class thread sync lock raii|범위 기반 락
+~unique_lock|class thread sync lock raii|유연한 범위 기반 락
+~condition_variable|class thread sync wait|조건 변수
+atomic|class thread sync atomic|원자적 변수
+async|fn thread async future|비동기 작업 실행
+future|class thread async future|비동기 결과
+join|method thread wait|스레드 종료 대기
+~chrono|scope time clock|시간 라이브러리
+~this_thread|scope thread|현재 스레드 관련 함수 모음
+~rand|fn rand num cstdlib|C 스타일 난수
+~mt19937|class rand engine|메르센 트위스터 난수 엔진
+~numeric_limits|class limit num type|수 타입의 한계값
+abs|fn math num|절댓값
+sqrt|fn math float root|제곱근
+pow|fn math float power|거듭제곱
+include|pp header file|헤더 포함
+define|pp macro const|매크로 정의
+~pragma|pp compiler opt|컴파일러 지시문 (#pragma once)
+~ifndef|pp cond macro guard|인클루드 가드
+`,
+py: `
+def|kw func decl|함수 정의
+class|kw class oop decl|클래스 정의
+return|kw func control jump|함수에서 값 반환
+yield|kw gen iter func lazy|제너레이터에서 값을 하나씩 내보냄
+lambda|kw func anon functional hof|익명 함수 식
+if|kw cond branch control|조건 분기
+elif|kw cond branch control|추가 조건 분기
+else|kw cond branch control|앞 조건이 모두 거짓일 때
+for|kw loop iter control|이터러블 순회
+while|kw loop cond control|조건 반복
+break|kw loop control jump|반복문 탈출
+continue|kw loop control jump|다음 반복으로 건너뛰기
+pass|kw control noop|아무것도 하지 않는 자리 채움
+try|kw exc err handle control|예외 처리 블록 시작
+except|kw exc err handle|예외를 잡는 블록
+finally|kw exc err handle cleanup|항상 실행되는 정리 블록
+raise|kw exc err throw|예외 발생
+with|kw context resource cleanup|컨텍스트 매니저 블록
+as|kw alias import context|별칭 붙이기
+import|kw import module|모듈 가져오기
+from|kw import module|모듈에서 이름 골라 가져오기
+global|kw scope var|전역 변수 사용 선언
+nonlocal|kw scope var closure|바깥 함수 변수 사용 선언
+del|kw remove var mutate|이름·항목 삭제
+assert|kw debug test cond|조건 검증, 실패 시 AssertionError
+in|kw op member check iter|포함 여부 / 순회 대상
+is|kw op compare identity|같은 객체인지 비교
+not|kw op logic bool|논리 부정
+and|kw op logic bool|논리곱
+or|kw op logic bool|논리합
+async|kw async coroutine func concurrency|비동기 함수 정의
+await|kw async coroutine wait concurrency|코루틴 결과 대기
+None|const null|값 없음
+True|const bool|참
+False|const bool|거짓
+match|kw branch pattern control|구조적 패턴 매칭
+~case|kw branch pattern control|match의 패턴 분기
+print|builtin fn io out console str|표준 출력에 출력
+input|builtin fn io in console str|표준 입력에서 한 줄 읽기
+len|builtin fn size seq count|길이
+range|builtin fn seq iter int loop|정수 범위 시퀀스
+enumerate|builtin fn iter index loop|(인덱스, 값) 쌍으로 순회
+zip|builtin fn iter combine tuple|여러 이터러블을 묶어 순회
+map|builtin fn iter functional hof transform|각 요소에 함수 적용
+filter|builtin fn iter functional hof cond|조건에 맞는 요소만 거르기
+sorted|builtin fn sort order seq list|정렬된 새 리스트
+reversed|builtin fn order iter reverse|역순 이터레이터
+sum|builtin fn math agg num|합계
+min|builtin fn math agg compare|최솟값
+max|builtin fn math agg compare|최댓값
+abs|builtin fn math num|절댓값
+round|builtin fn math num float|반올림
+pow|builtin fn math num power|거듭제곱
+~divmod|builtin fn math num int|몫과 나머지
+int|builtin type conv num int|정수형 / 정수로 변환
+float|builtin type conv num float|실수형 / 실수로 변환
+str|builtin type conv str|문자열형 / 문자열로 변환
+bool|builtin type conv bool|불리언형
+list|builtin type seq list collection mutable|리스트
+dict|builtin type dict collection mapping|딕셔너리
+set|builtin type set collection unique|집합
+tuple|builtin type seq tuple collection immutable|튜플
+~frozenset|builtin type set collection immutable|불변 집합
+bytes|builtin type bytes binary immutable|바이트열
+~bytearray|builtin type bytes binary mutable|가변 바이트열
+type|builtin fn introspect type class|객체의 타입
+isinstance|builtin fn introspect type check class|인스턴스인지 확인
+~issubclass|builtin fn introspect type check class inherit|서브클래스인지 확인
+id|builtin fn introspect identity|객체 고유 식별값
+hash|builtin fn hash identity|해시값
+repr|builtin fn str conv debug|개발자용 문자열 표현
+format|builtin fn str fmt|값 서식 지정
+open|builtin fn io file|파일 열기
+iter|builtin fn iter|이터레이터 얻기
+next|builtin fn iter gen|이터레이터의 다음 요소
+all|builtin fn logic bool agg iter|모두 참인지
+any|builtin fn logic bool agg iter|하나라도 참인지
+getattr|builtin fn attr introspect get|속성 값 가져오기
+setattr|builtin fn attr introspect set|속성 값 설정
+hasattr|builtin fn attr introspect check|속성이 있는지
+~delattr|builtin fn attr introspect remove|속성 삭제
+dir|builtin fn introspect attr list|속성 이름 목록
+~vars|builtin fn introspect attr dict|__dict__ 반환
+~globals|builtin fn introspect scope dict|전역 네임스페이스 딕셔너리
+callable|builtin fn introspect func check|호출할 수 있는지
+super|builtin fn class oop inherit|부모 클래스에 위임
+property|builtin deco class oop attr|속성 접근자 데코레이터
+staticmethod|builtin deco class oop method|정적 메서드 데코레이터
+classmethod|builtin deco class oop method|클래스 메서드 데코레이터
+object|builtin type class oop base|모든 클래스의 기반
+chr|builtin fn conv str char int unicode|코드 포인트 → 문자
+ord|builtin fn conv int char unicode|문자 → 코드 포인트
+hex|builtin fn conv str int base|16진수 문자열
+bin|builtin fn conv str int base|2진수 문자열
+~oct|builtin fn conv str int base|8진수 문자열
+eval|builtin fn exec code dynamic|식 문자열 평가
+exec|builtin fn exec code dynamic|코드 문자열 실행
+~help|builtin fn doc introspect|도움말 보기
+~slice|builtin type seq index|슬라이스 객체
+~breakpoint|builtin fn debug|디버거 진입
+__init__|dunder class oop init method|인스턴스 초기화
+~__new__|dunder class oop init create|인스턴스 생성
+__str__|dunder class str conv|사람이 읽는 문자열 표현
+__repr__|dunder class str conv debug|개발자용 문자열 표현
+__len__|dunder class size protocol|len() 지원
+__eq__|dunder class compare op|== 비교
+~__hash__|dunder class hash|hash() 지원
+__iter__|dunder class iter protocol|이터레이터 반환
+__next__|dunder class iter protocol gen|다음 요소 반환
+__enter__|dunder class context protocol resource|with 블록 진입
+__exit__|dunder class context protocol cleanup|with 블록 종료
+__call__|dunder class func protocol|인스턴스를 함수처럼 호출
+__getitem__|dunder class index protocol|[] 인덱싱 지원
+~__add__|dunder class op math|+ 연산자
+__name__|dunder module introspect|모듈·객체 이름
+__main__|dunder module entry|최상위 실행 모듈 이름
+self|class oop method instance|인스턴스 자신
+append|method list add mutate seq|리스트 끝에 추가
+extend|method list add mutate seq concat|이터러블을 이어 붙이기
+insert|method list add mutate index|위치에 삽입
+pop|method list dict remove mutate|꺼내면서 제거
+remove|method list set remove mutate|값으로 제거
+index|method list str search index|위치 찾기 (없으면 예외)
+count|method list str count search|개수 세기
+sort|method list sort order mutate|제자리 정렬
+reverse|method list order reverse mutate|제자리 뒤집기
+copy|method list dict set copy|얕은 복사
+clear|method list dict set remove mutate|모두 비우기
+keys|method dict mapping iter view|키 뷰
+values|method dict mapping iter view|값 뷰
+items|method dict mapping iter view tuple|(키, 값) 뷰
+get|method dict mapping lookup default|키로 값 조회 (기본값 지원)
+update|method dict set mutate merge|병합해서 갱신
+~setdefault|method dict mapping default mutate|없으면 기본값을 넣고 반환
+split|method str split parse|구분자로 나누기
+join|method str join concat|이어 붙이기
+strip|method str trim space|양끝 공백 제거
+replace|method str replace transform|부분 문자열 치환
+startswith|method str check prefix search|접두사 확인
+endswith|method str check suffix search|접미사 확인
+find|method str search index|위치 찾기 (없으면 -1)
+lower|method str case transform|소문자로
+upper|method str case transform|대문자로
+~title|method str case transform|단어 첫 글자만 대문자로
+encode|method str bytes conv unicode|바이트로 인코딩
+decode|method bytes str conv unicode|문자열로 디코딩
+isdigit|method str check num|숫자 문자로만 됐는지
+~splitlines|method str split line|줄 단위로 나누기
+add|method set add mutate|집합에 추가
+~discard|method set remove mutate|있으면 제거
+union|method set combine merge|합집합
+intersection|method set combine|교집합
+read|method io file in|파일 읽기
+write|method io file out|파일 쓰기
+readline|method io file in line|한 줄 읽기
+~readlines|method io file in line list|모든 줄을 리스트로
+close|method io file cleanup resource|파일 닫기
+Exception|exc err class base|일반 예외의 기반 클래스
+ValueError|exc err value|값이 부적절함
+TypeError|exc err type|타입이 부적절함
+KeyError|exc err dict lookup|없는 키
+IndexError|exc err seq index|범위를 벗어난 인덱스
+AttributeError|exc err attr|없는 속성
+ZeroDivisionError|exc err math|0으로 나눔
+StopIteration|exc iter gen protocol|이터레이터 소진
+FileNotFoundError|exc err io file os|파일 없음
+~ImportError|exc err import module|임포트 실패
+ModuleNotFoundError|exc err import module|모듈을 찾을 수 없음
+~RuntimeError|exc err|기타 런타임 오류
+NotImplementedError|exc err class abstract|아직 구현되지 않음
+KeyboardInterrupt|exc signal console|Ctrl+C 인터럽트
+~RecursionError|exc err func recursion|재귀 한도 초과
+os|module os sys file path proc env|운영체제 인터페이스
+sys|module sys proc cli|인터프리터 관련 기능
+re|module regex str pattern search|정규 표현식
+json|module json serial parse|JSON 인코딩·디코딩
+math|module math num float|수학 함수
+random|module rand num|난수
+datetime|module date time|날짜와 시간
+time|module time clock|시간 함수
+collections|module collection container|특수 컨테이너 자료형
+itertools|module iter functional combinatorics|이터레이터 도구
+functools|module functional hof deco|고차 함수 도구
+pathlib|module path file os|객체지향 파일 경로
+typing|module type hint|타입 힌트
+asyncio|module async coroutine concurrency|비동기 I/O
+threading|module thread concurrency|스레드
+subprocess|module proc exec os shell|하위 프로세스 실행
+logging|module log debug out|로깅
+unittest|module test debug|단위 테스트
+~dataclasses|module class deco data|데이터 클래스 모듈
+~pickle|module serial binary file|파이썬 객체 직렬화
+csv|module file parse serial table|CSV 읽기·쓰기
+argparse|module cli parse args|명령행 인자 파싱
+Path|class path file os|경로 객체
+defaultdict|class dict collection default|기본값이 있는 딕셔너리
+Counter|class dict collection count|개수 세기 딕셔너리
+deque|class collection queue seq|양방향 큐
+namedtuple|class tuple collection|필드 이름이 있는 튜플
+~OrderedDict|class dict collection order|순서를 기억하는 딕셔너리
+lru_cache|deco functional cache|LRU 캐시 데코레이터
+~partial|fn functional hof|인자를 고정한 새 함수
+reduce|fn functional hof agg|누적해서 하나의 값으로
+~wraps|deco functional meta|래퍼에 원본 메타데이터 복사
+~chain|fn iter combine combinatorics|이터러블 이어 붙이기
+~product|fn iter combinatorics|데카르트 곱
+permutations|fn iter combinatorics order|순열
+combinations|fn iter combinatorics|조합
+~groupby|fn iter group|연속된 같은 키끼리 묶기
+dataclass|deco class data|데이터 클래스 데코레이터
+randint|fn rand num int|범위 안의 정수 난수
+choice|fn rand seq|임의로 하나 고르기
+shuffle|fn rand seq mutate order|제자리에서 섞기
+sleep|fn time wait|지정한 초만큼 대기
+loads|fn json serial parse str|JSON 문자열 → 객체
+dumps|fn json serial str|객체 → JSON 문자열
+~load|fn json serial parse file|JSON 파일 → 객체
+~dump|fn json serial file|객체 → JSON 파일
+findall|fn regex search pattern list|모든 매치를 리스트로
+sub|fn regex replace pattern|정규식 치환
+~search|fn regex search pattern|처음 매치 찾기
+listdir|fn os file dir list|디렉터리 목록
+~getcwd|fn os dir path|현재 작업 디렉터리
+environ|os env dict proc|환경 변수 딕셔너리
+argv|sys cli args list|명령행 인자 리스트
+exit|fn sys proc|프로그램 종료
+sqrt|fn math float root|제곱근
+~floor|fn math float round|내림
+~ceil|fn math float round|올림
+pi|const math float|원주율
+now|fn date time|현재 시각
+~deepcopy|fn copy deep|깊은 복사
+~gather|fn async coroutine concurrency|여러 코루틴 동시 실행
+~Thread|class thread concurrency|스레드 객체
+~Lock|class thread sync lock|스레드 락
+`,
+js: `
+var|kw decl var scope func|함수 스코프 변수 선언
+let|kw decl var scope block|블록 스코프 변수 선언
+const|kw decl var scope block readonly|재할당할 수 없는 블록 스코프 선언
+function|kw decl func|함수 선언
+return|kw control func jump|함수에서 값 반환
+if|kw cond branch control|조건 분기
+else|kw cond branch control|if가 거짓일 때
+switch|kw branch control case|값에 따른 다중 분기
+case|kw branch control case label|switch 분기 레이블
+default|kw branch control case module export|switch 기본 분기 / 기본 내보내기
+for|kw loop control|반복문
+while|kw loop control cond|조건 반복문
+do|kw loop control|do-while 반복문
+break|kw control jump loop case|반복문·switch 탈출
+continue|kw control jump loop|다음 반복으로
+try|kw exc err handle control|예외 처리 블록
+catch|kw exc err handle promise|예외 잡기 / Promise 거부 처리
+finally|kw exc err handle cleanup promise|항상 실행되는 정리 블록
+throw|kw exc err|예외 던지기
+new|kw oop create class instance|생성자로 인스턴스 만들기
+this|kw oop instance ctx this|현재 실행 컨텍스트 객체
+class|kw oop class decl|클래스 선언
+extends|kw oop class inherit|클래스 상속
+super|kw oop class inherit|부모 클래스 참조
+static|kw oop class member|클래스 정적 멤버
+import|kw module import|모듈 가져오기
+export|kw module export|모듈 내보내기
+async|kw async promise func|비동기 함수 선언
+await|kw async promise wait|Promise 결과 기다리기
+yield|kw gen iter func lazy|제너레이터 값 내보내기
+typeof|kw op type check|피연산자의 타입 문자열
+instanceof|kw op type check oop proto|프로토타입 체인 확인
+in|kw op obj prop check|속성이 있는지 / for-in
+of|kw loop iter|for-of 순회
+delete|kw op obj prop remove|객체 속성 삭제
+~void|kw op|식을 평가하고 undefined 반환
+null|const null|의도적인 빈 값
+undefined|const null|할당되지 않은 값
+true|const bool|참
+false|const bool|거짓
+NaN|const num invalid|숫자가 아님
+Infinity|const num limit|무한대
+~debugger|kw debug|디버거 중단점
+console|global console debug out|콘솔 객체
+console.log|method console debug out|콘솔에 출력
+console.error|method console debug out err|콘솔에 오류 출력
+~console.table|method console debug out table|표 형태로 출력
+window|global dom browser root|브라우저 전역 객체
+document|global dom browser root|현재 HTML 문서
+~globalThis|global root|환경과 무관한 전역 객체
+JSON|global json serial|JSON 도구 객체
+JSON.parse|method json serial parse str|JSON 문자열 → 값
+JSON.stringify|method json serial str conv|값 → JSON 문자열
+Math|global math num|수학 도구 객체
+Math.floor|method math num round|내림
+~Math.ceil|method math num round|올림
+Math.round|method math num round|반올림
+Math.random|method math num rand|0 이상 1 미만 난수
+Math.max|method math num agg cmp|최댓값
+Math.min|method math num agg cmp|최솟값
+Math.abs|method math num abs|절댓값
+~Math.pow|method math num power|거듭제곱
+~Math.sqrt|method math num root|제곱근
+Object|global obj type class|객체 생성자
+Object.keys|method obj prop iter array|키 배열
+Object.values|method obj prop iter array|값 배열
+Object.entries|method obj prop iter array pair|[키, 값] 배열
+Object.assign|method obj prop copy merge|속성 복사·병합
+Object.freeze|method obj immutable|객체 동결
+Array|global array type class|배열 생성자
+Array.isArray|method array type check|배열인지 확인
+Array.from|method array conv iter create|유사 배열·이터러블 → 배열
+String|global str type class conv|문자열 생성자 / 변환
+Number|global num type class conv|숫자 생성자 / 변환
+Boolean|global bool type class conv|불리언 변환
+Symbol|global type unique prop|고유한 심볼 값
+BigInt|global num int type|임의 정밀도 정수
+Promise|global async promise class|비동기 결과 객체
+Promise.all|method async promise concurrency agg|모두 이행되면 결과 배열
+~Promise.race|method async promise concurrency|가장 먼저 끝난 결과
+~Promise.resolve|method async promise create|이행된 Promise 만들기
+Map|global collection map class key|키-값 컬렉션
+Set|global collection set class unique|중복 없는 값 컬렉션
+~WeakMap|global collection map class key weak|약한 참조 키 맵
+Date|global time date class|날짜·시간 객체
+Date.now|method time date now|현재 타임스탬프(ms)
+RegExp|global regex str pattern class|정규 표현식 객체
+Error|global err exc class|오류 객체
+TypeError|global err exc class type|타입 오류
+~SyntaxError|global err exc class parse|구문 오류
+~Proxy|global obj meta intercept|객체 동작 가로채기
+~Reflect|global obj meta prop|객체 조작 메서드 모음
+fetch|global async net http promise|HTTP 요청
+setTimeout|global timer async callback|지연 후 한 번 실행
+setInterval|global timer async callback repeat|주기적으로 실행
+clearTimeout|global timer cancel|setTimeout 취소
+~clearInterval|global timer cancel repeat|setInterval 취소
+requestAnimationFrame|global timer dom browser render callback|다음 화면을 그리기 전에 실행
+parseInt|global conv str num int parse|문자열 → 정수
+parseFloat|global conv str num float parse|문자열 → 실수
+isNaN|global num check invalid|NaN인지 확인
+alert|global browser dialog out|경고창 띄우기
+~prompt|global browser dialog in|입력창 띄우기
+~confirm|global browser dialog in bool|확인창 띄우기
+localStorage|global browser storage persist|영구 로컬 저장소
+~sessionStorage|global browser storage|세션 저장소
+~XMLHttpRequest|global async net http event|구식 HTTP 요청 객체
+~WebSocket|global async net event|양방향 실시간 통신
+~structuredClone|global obj copy deep|깊은 복사
+eval|global exec code dynamic|문자열 코드 실행
+~encodeURIComponent|global str url encode|URI 구성요소 인코딩
+push|method array add mutate end|끝에 요소 추가
+pop|method array remove mutate end|끝 요소 꺼내기
+shift|method array remove mutate start|앞 요소 꺼내기
+unshift|method array add mutate start|앞에 요소 추가
+slice|method array str copy range|일부를 잘라 새로 반환
+splice|method array mutate add remove range|제자리에서 삭제·삽입
+concat|method array str concat|이어 붙인 새 배열
+map|method array iter hof transform|각 요소를 변환한 새 배열
+filter|method array iter hof cond|조건을 통과한 요소만
+reduce|method array iter hof agg|누적해서 하나의 값으로
+forEach|method array iter hof loop|각 요소에 함수 실행
+find|method array iter hof search|조건에 맞는 첫 요소
+findIndex|method array iter hof search index|조건에 맞는 첫 인덱스
+some|method array iter hof bool check|하나라도 만족하는지
+every|method array iter hof bool check|모두 만족하는지
+includes|method array str search bool check|포함 여부
+indexOf|method array str search index|값의 위치
+join|method array str conv concat|요소를 문자열로 이어 붙이기
+sort|method array sort mutate cmp|제자리 정렬
+reverse|method array mutate order|제자리 뒤집기
+flat|method array nested transform|중첩 배열 평탄화
+~flatMap|method array iter hof nested transform|map 후 평탄화
+~fill|method array mutate|값으로 채우기
+~at|method array str index|음수 인덱스도 되는 접근
+length|prop array str size|길이
+split|method str array split parse|구분자로 나눠 배열로
+trim|method str space|양끝 공백 제거
+toUpperCase|method str case conv|대문자로
+toLowerCase|method str case conv|소문자로
+replace|method str regex replace|패턴 치환 (첫 번째만)
+replaceAll|method str regex replace|패턴 모두 치환
+startsWith|method str check prefix|접두사 확인
+endsWith|method str check suffix|접미사 확인
+substring|method str range copy|부분 문자열
+charAt|method str char index|위치의 문자
+padStart|method str fmt|앞을 채워 길이 맞추기
+~repeat|method str|반복한 문자열
+match|method str regex search|정규식 매칭 결과
+toString|method conv str|문자열 표현
+~toFixed|method num fmt str float|소수점 자릿수를 고정한 문자열
+then|method async promise callback|이행 시 콜백 등록
+resolve|func async promise|Promise 이행 (executor 인자)
+reject|func async promise err|Promise 거부 (executor 인자)
+get|method map collection key lookup|키로 값 조회
+set|method map collection key mutate|키에 값 저장
+has|method map set collection check bool|있는지 확인
+add|method set collection mutate|Set에 값 추가
+addEventListener|method dom event listen callback|이벤트 리스너 등록
+removeEventListener|method dom event listen remove|이벤트 리스너 제거
+querySelector|method dom select search css|CSS 선택자로 첫 요소 찾기
+querySelectorAll|method dom select search css list|CSS 선택자로 모든 요소 찾기
+getElementById|method dom select search id|id로 요소 찾기
+createElement|method dom create node|요소 만들기
+appendChild|method dom node add tree|자식 노드 추가
+remove|method dom node remove|요소를 문서에서 제거
+innerHTML|prop dom html content|요소 안의 HTML
+textContent|prop dom text content|요소의 텍스트
+classList|prop dom css class|클래스 목록 조작
+setAttribute|method dom attr set|속성 설정
+getAttribute|method dom attr get|속성 읽기
+~dataset|prop dom attr data|data-* 속성
+style|prop dom css|인라인 스타일
+preventDefault|method dom event cancel|기본 동작 막기
+stopPropagation|method dom event propagation|이벤트 전파 중단
+~dispatchEvent|method dom event trigger|이벤트 발생시키기
+~closest|method dom select tree search|가장 가까운 조상 요소
+onclick|prop dom event handler click|클릭 핸들러 속성
+value|prop dom input form|입력 요소의 값
+~focus|method dom input form|포커스 주기
+prototype|prop oop proto inherit|생성자의 프로토타입 객체
+constructor|method oop class init create|클래스 생성자
+bind|method func this ctx|this를 고정한 새 함수
+call|method func this ctx invoke|this를 지정해 호출
+apply|method func this ctx invoke array|this와 인자 배열로 호출
+arguments|func args local|함수에 전달된 인자 목록
+next|method iter gen|이터레이터의 다음 값
+require|node module import|CommonJS 모듈 가져오기
+module.exports|node module export|CommonJS 내보내기
+process|node global proc env|현재 Node 프로세스
+~__dirname|node path file dir|현재 모듈의 디렉터리
+~Buffer|node bytes binary|바이너리 데이터 버퍼
+`,
+java: `
+public|kw access modifier visibility|어디서나 접근 가능
+private|kw access modifier visibility encapsulation|클래스 안에서만 접근
+protected|kw access modifier visibility inherit|같은 패키지와 하위 클래스에서 접근
+static|kw modifier class member|클래스 소속 멤버
+final|kw modifier immutable inherit|변경·상속·오버라이드 금지
+abstract|kw modifier class oop inherit|추상 클래스·메서드
+class|kw oop class decl|클래스 선언
+interface|kw oop interface decl abstract|인터페이스 선언
+enum|kw oop class const decl|열거형 선언
+record|kw oop class data immutable decl|불변 데이터 클래스 선언
+extends|kw oop inherit class|클래스 상속
+implements|kw oop inherit interface|인터페이스 구현
+new|kw oop create instance|객체 생성
+this|kw oop instance ref|현재 객체
+super|kw oop inherit ref|부모 클래스 참조
+return|kw control func jump|메서드에서 값 반환
+void|kw type func|반환값 없음
+if|kw cond branch control|조건 분기
+else|kw cond branch control|if가 거짓일 때
+switch|kw branch control case|다중 분기
+case|kw branch control case label|switch 분기 레이블
+default|kw branch control case label interface|switch 기본 분기 / 인터페이스 기본 메서드
+for|kw loop control iter|반복문 (향상된 for 포함)
+while|kw loop control cond|조건 반복문
+do|kw loop control|do-while 반복문
+break|kw control jump loop case|반복문·switch 탈출
+continue|kw control jump loop|다음 반복으로
+try|kw exc err handle control|예외 처리 블록
+catch|kw exc err handle|예외 잡기
+finally|kw exc err handle cleanup|항상 실행되는 정리 블록
+throw|kw exc err|예외 던지기
+throws|kw exc err decl checked|메서드가 던질 수 있는 예외 선언
+import|kw package module|다른 패키지의 타입 가져오기
+package|kw package module decl|패키지 선언
+synchronized|kw thread sync lock modifier|모니터 락으로 동기화
+volatile|kw thread sync modifier visibility|스레드 간 가시성 보장
+~transient|kw modifier serial|직렬화에서 제외
+~native|kw modifier jni|네이티브 코드로 구현
+instanceof|kw op type check|타입 검사
+var|kw decl type infer|지역 변수 타입 추론
+null|const null ref|참조 없음
+true|const bool|참
+false|const bool|거짓
+~assert|kw debug check|단언문
+int|kw type primitive int num|32비트 정수
+long|kw type primitive int num|64비트 정수
+double|kw type primitive float num|64비트 실수
+float|kw type primitive float num|32비트 실수
+boolean|kw type primitive bool|논리형
+char|kw type primitive char|16비트 문자
+byte|kw type primitive int bytes|8비트 정수
+short|kw type primitive int|16비트 정수
+~sealed|kw modifier class inherit|허용된 하위 클래스만 상속
+Override|annotation oop inherit method|@Override 오버라이드 표시
+~FunctionalInterface|annotation interface lambda functional|@FunctionalInterface 함수형 인터페이스 표시
+~Deprecated|annotation doc|@Deprecated 사용 중단 표시
+String|class str text|불변 문자열
+Object|class oop base root|모든 클래스의 조상
+Integer|class wrapper int num|int 래퍼 클래스
+~Long|class wrapper int num|long 래퍼 클래스
+Double|class wrapper float num|double 래퍼 클래스
+~Boolean|class wrapper bool|boolean 래퍼 클래스
+Character|class wrapper char|char 래퍼 클래스
+Math|class math num util|수학 유틸리티
+System|class sys io console|시스템 도구 (System.out 등)
+StringBuilder|class str text builder mutable|가변 문자열 빌더
+ArrayList|class collection list array|배열 기반 리스트
+LinkedList|class collection list queue node|연결 리스트
+HashMap|class collection map hash key|해시 기반 맵
+TreeMap|class collection map sort key tree|정렬된 맵
+HashSet|class collection set hash unique|해시 기반 집합
+~TreeSet|class collection set sort unique tree|정렬된 집합
+List|interface collection list|순서 있는 컬렉션
+Map|interface collection map key|키-값 매핑
+Set|interface collection set unique|중복 없는 컬렉션
+Queue|interface collection queue|큐
+~Deque|interface collection queue|양방향 큐
+ArrayDeque|class collection queue array|배열 기반 양방향 큐
+PriorityQueue|class collection queue sort heap|우선순위 큐
+Iterator|interface collection iter|순회자
+Collections|class collection util sort|컬렉션 유틸리티
+Arrays|class array util sort|배열 유틸리티
+Optional|class null wrapper functional|값이 없을 수도 있는 컨테이너
+Stream|interface stream functional pipeline|스트림 파이프라인
+Collectors|class stream functional collect util|스트림 수집기 모음
+Scanner|class io in console parse|입력 토큰 스캐너
+BufferedReader|class io in buf line|버퍼 입력 리더
+~InputStream|class io in bytes stream|바이트 입력 스트림
+Thread|class thread concurrency|스레드
+Runnable|interface thread concurrency functional|실행할 작업
+ExecutorService|interface thread concurrency pool|스레드 풀 실행기
+CompletableFuture|class async concurrency future|비동기 결과 조합
+Exception|class exc err checked|예외 기반 클래스
+RuntimeException|class exc err unchecked|비검사 예외
+NullPointerException|class exc err unchecked null|null 참조에 접근
+IllegalArgumentException|class exc err unchecked args|잘못된 인자
+~IndexOutOfBoundsException|class exc err unchecked index|범위를 벗어난 인덱스
+IOException|class exc err checked io|입출력 예외
+Comparable|interface compare sort|자연 순서 정의
+Comparator|interface compare sort functional|비교자
+LocalDate|class time date|날짜
+~Files|class io file util|파일 유틸리티
+~Path|interface io file path|파일 경로
+Random|class rand num|난수 생성기
+~Objects|class util null equality|객체 유틸리티
+main|method entry static|프로그램 진입점
+println|method io out console line|줄바꿈과 함께 출력
+print|method io out console|출력
+printf|method io out console fmt|서식 출력
+toString|method str conv object|문자열 표현
+equals|method equality object compare|논리적 동등성 비교
+hashCode|method hash object equality|해시 코드
+compareTo|method compare sort|다른 객체와 순서 비교
+compare|method compare sort functional|두 객체의 순서 비교
+length|method str size|문자열 길이
+size|method collection size|컬렉션 크기
+charAt|method str char index|위치의 문자
+substring|method str range|부분 문자열
+indexOf|method str list search index|위치 찾기
+contains|method str collection search check|포함 여부
+isEmpty|method str collection check size|비어 있는지
+split|method str array parse regex|구분자로 나누기
+trim|method str space|양끝 공백 제거
+~toUpperCase|method str case conv|대문자로
+equalsIgnoreCase|method str equality compare case|대소문자 무시 비교
+valueOf|method conv static str wrapper|값 → 객체·문자열 변환
+parseInt|method conv parse str int wrapper static|문자열 → int
+add|method collection list set mutate|요소 추가
+get|method collection list map lookup|요소 조회
+put|method collection map mutate key|키에 값 저장
+remove|method collection mutate|요소 제거
+containsKey|method collection map check key|키가 있는지
+getOrDefault|method collection map lookup key|없으면 기본값 반환
+keySet|method collection map set key view|키 집합
+~entrySet|method collection map set view|엔트리 집합
+iterator|method collection iter|순회자 얻기
+hasNext|method iter check|다음 요소가 있는지
+next|method iter|다음 요소
+stream|method stream collection pipeline|스트림 만들기
+map|method stream functional transform|요소 변환
+filter|method stream functional cond|조건으로 거르기
+collect|method stream functional collect|결과 모으기
+forEach|method stream collection functional loop|각 요소에 동작 수행
+reduce|method stream functional agg|누적 계산
+sorted|method stream sort|정렬된 스트림
+of|method static create collection factory|불변 컬렉션·스트림 생성
+asList|method array list conv util|배열 → 리스트
+sort|method sort util collection array|정렬
+nextInt|method in parse int rand|다음 정수 읽기 / 정수 난수
+nextLine|method in console line|다음 줄 읽기
+readLine|method io in buf line|한 줄 읽기
+start|method thread concurrency|스레드 시작
+run|method thread concurrency|작업 본문
+join|method thread concurrency wait str|스레드 종료 대기 / 문자열 결합
+sleep|method thread wait time static|일시 정지
+wait|method thread sync wait object|모니터에서 대기
+notify|method thread sync object|대기 중인 스레드 깨우기
+~submit|method thread concurrency pool future|작업 제출
+currentTimeMillis|method time sys static|현재 시각(ms)
+~arraycopy|method array copy sys|배열 복사
+exit|method sys proc|JVM 종료
+getClass|method object type reflect|런타임 클래스
+~clone|method object copy|객체 복제
+append|method str builder mutate|문자열 덧붙이기
+format|method str fmt static|서식 문자열 만들기
+max|method math num agg static|최댓값
+min|method math num agg static|최솟값
+abs|method math num static|절댓값
+sqrt|method math num float static|제곱근
+pow|method math num float static|거듭제곱
+random|method math rand static|0 이상 1 미만 난수
+~lock|method thread sync lock|락 획득
+`};
+</script>
+<script>
+const LANGS = [
+  { id: 'c', file: 'main.c', name: 'C', dot: '#555555', ps: '(gdb)', eg: 'malloc' },
+  { id: 'cpp', file: 'main.cpp', name: 'C++', dot: '#f34b7d', ps: '[cling]$', eg: 'vector' },
+  { id: 'py', file: 'main.py', name: 'Python', dot: '#3572A5', ps: '>>>', eg: 'print' },
+  { id: 'js', file: 'index.js', name: 'JavaScript', dot: '#f1e05a', ps: '>', eg: 'map' },
+  { id: 'java', file: 'Main.java', name: 'Java', dot: '#b07219', ps: 'jshell>', eg: 'String' },
+];
+const HINT_RANKS = [30, 10, 3];
+
+function bigrams(s) {
+  const g = new Set();
+  for (let i = 0; i < s.length - 1; i++) g.add(s.slice(i, i + 2));
+  return g;
+}
+
+function parse(raw) {
+  const words = raw.trim().split('\n').map(line => {
+    let [name, tags, desc] = line.split('|');
+    const rare = name.startsWith('~');
+    if (rare) name = name.slice(1);
+    return { name, tags: tags.split(' '), desc, rare, grams: bigrams(name.toLowerCase()) };
+  });
+  const df = {}, co = {};
+  for (const w of words) for (const t of w.tags) {
+    df[t] = (df[t] || 0) + 1;
+    co[t] ??= {};
+    for (const u of w.tags) if (u !== t) co[t][u] = (co[t][u] || 0) + 1;
+  }
+  // IDF: a tag shared by few words says more than one shared by many
+  const idf = t => Math.log(1 + words.length / df[t]);
+  for (const w of words) {
+    w.vec = {};
+    for (const t of w.tags) w.vec[t] = idf(t);
+    // tags that often appear together (pp ↔ macro ↔ const) leak weight to each other,
+    // so a far-off guess still gets a small ordered score instead of a flat 0
+    for (const t of w.tags) for (const u in co[t]) w.vec[u] = (w.vec[u] || 0) + idf(t) * co[t][u] / Math.sqrt(df[t] * df[u]);
+    w.norm = Math.hypot(...Object.values(w.vec));
+  }
+  return words;
+}
+
+function sim(a, b) {
+  if (a === b) return 1;
+  let dot = 0, shared = 0;
+  for (const t in a.vec) if (t in b.vec) dot += a.vec[t] * b.vec[t];
+  for (const g of a.grams) if (b.grams.has(g)) shared++;
+  const spell = a.grams.size + b.grams.size ? 2 * shared / (a.grams.size + b.grams.size) : 0;
+  return 0.8 * dot / (a.norm * b.norm) + 0.2 * spell;
+}
+
+// index in the returned array = rank (0 = the answer)
+function rankFor(words, answer) {
+  return words.map(w => ({ w, s: sim(answer, w) }))
+    .sort((x, y) => y.s - x.s || x.w.name.localeCompare(y.w.name));
+}
+
+function lookup(words, raw) {
+  const q = raw.replace(/\s+/g, '').replace(/^[#@]/, '').replace(/[();]+$/, '').replace(/<.*>$/, '');
+  if (!q) return null;
+  const lq = q.toLowerCase();
+  const hit = words.find(w => w.name === q) || words.find(w => w.name.toLowerCase() === lq);
+  if (hit) return hit;
+  const seg = q.slice(Math.max(q.lastIndexOf('.'), q.lastIndexOf(':')) + 1);
+  if (seg !== q) return lookup(words, seg); // "System.out.println" → println, "std::vector<int>" → vector
+  const c = words.filter(w => w.name.toLowerCase().endsWith('.' + lq)); // "log" → console.log
+  return c.length === 1 ? c[0] : null;
+}
+
+function hash(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+// --- UI ---
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const d = new Date();
+const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const dayNo = Math.round((Date.parse(today) - Date.parse('2026-09-22')) / 864e5) + 1;
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+const games = {};
+function game(id) {
+  if (games[id]) return games[id];
+  const words = parse(RAW[id]);
+  const pool = words.filter(w => !w.rare);
+  const answer = pool[hash(id + today) % pool.length];
+  const ranked = rankFor(words, answer);
+  const info = new Map(ranked.map((r, i) => [r.w.name, { w: r.w, s: r.s, rank: i }]));
+  const key = `devmantle:${id}:${today}`;
+  const saved = store.get(key) || {};
+  const guesses = (saved.guesses || []).filter(x => info.has(x.name));
+  return games[id] = { id, words, answer, ranked, info, key, guesses, gaveUp: !!saved.gaveUp };
+}
+const save = g => store.set(g.key, { guesses: g.guesses, gaveUp: g.gaveUp });
+const solvedAt = g => g.guesses.findIndex(x => x.name === g.answer.name && !x.hint);
+const done = g => g.gaveUp || solvedAt(g) >= 0;
+
+let cur = LANGS.some(l => l.id === store.get('devmantle:lang')) ? store.get('devmantle:lang') : 'c';
+let armed = 0;
+
+function say(html, err) {
+  $('msg').innerHTML = html;
+  $('msg').className = 'msg' + (err ? ' err' : '');
+}
+
+function renderTabs() {
+  $('tabs').innerHTML = LANGS.map(l => `<button type="button" role="tab" class="tab${done(game(l.id)) ? ' done' : ''}"
+    aria-selected="${l.id === cur}" data-id="${l.id}" style="--dot:${l.dot}"><i class="dot"></i>${l.file}</button>`).join('');
+}
+
+function render() {
+  const g = game(cur), lang = LANGS.find(l => l.id === cur), N = g.words.length;
+  renderTabs();
+  const hintsLeft = HINT_RANKS.length - g.guesses.filter(x => x.hint).length;
+  $('meta').textContent = `#${dayNo} · ${today} · ${lang.name} 식별자 ${N}개 · 힌트 ${hintsLeft}/${HINT_RANKS.length}`;
+  $('ps').textContent = lang.ps;
+  $('guess').placeholder = `식별자 입력 (예: ${lang.eg})`;
+
+  const res = $('result');
+  res.hidden = !done(g);
+  if (done(g)) {
+    const at = solvedAt(g), a = g.answer;
+    res.className = 'result';
+    res.innerHTML = `
+      <p class="kicker">${at >= 0 ? `정답! ${at + 1}번 만에 맞혔어요` : '오늘의 정답'}</p>
+      <p class="answer">${esc(a.name)}</p>
+      <p class="desc">${esc(a.desc)}</p>
+      <ul class="tags">${a.tags.map(t => `<li>#${esc(t)}</li>`).join('')}</ul>
+      <h3>가장 가까운 식별자</h3>
+      <ol class="near">${g.ranked.slice(1, 11).map((r, i) =>
+        `<li><b>${i + 1}</b><code>${esc(r.w.name)}</code><span>${(r.s * 100).toFixed(2)}</span></li>`).join('')}</ol>
+      <p class="next">내일 00시에 새 정답이 열려요. 다른 언어 탭도 도전해보세요.</p>`;
+  }
+
+  if (!g.guesses.length) {
+    $('board').innerHTML = `<p class="empty">아직 입력한 식별자가 없어요.</p>`;
+    return;
+  }
+  const rows = g.guesses.map((x, i) => ({ ...g.info.get(x.name), n: i + 1, hint: x.hint }));
+  const row = (r, extra = '') => `<div class="row${extra}${r.rank === 0 ? ' win' : r.rank <= 10 ? ' hot' : ''}" data-name="${esc(r.w.name)}">
+    <span class="n">${r.n}</span>
+    <span class="id"><code>${esc(r.w.name)}</code>${r.hint ? '<em class="chip">힌트</em>' : ''}<small>${esc(r.w.desc)}</small></span>
+    <span class="sc">${(r.s * 100).toFixed(2)}</span>
+    <span class="rk">${r.rank === 0 ? '정답' : r.rank + '위'}<i style="--w:${((N - r.rank) / N * 100).toFixed(1)}%"></i></span>
+  </div>`;
+  $('board').innerHTML =
+    `<div class="row head"><span>#</span><span>식별자</span><span>유사도</span><span>순위</span></div>` +
+    row(rows[rows.length - 1], ' latest') +
+    [...rows].sort((a, b) => a.rank - b.rank).map(r => row(r)).join('');
+}
+
+function flash(name) {
+  const el = $('board').querySelector(`.row:not(.latest)[data-name="${CSS.escape(name)}"]`);
+  if (!el) return;
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+  el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+// 빰빰빰 빠~밤: 삼연음 G4 뒤에 C major 화음, 톱니파를 로우패스로 깎아 금관 느낌
+function fanfare() {
+  try {
+    const ac = new AudioContext(), now = ac.currentTime;
+    const lp = ac.createBiquadFilter();
+    lp.frequency.value = 2200;
+    lp.connect(ac.destination);
+    const notes = [[392, 0, .1], [392, .12, .1], [392, .24, .1], [523.25, .38, 1], [659.25, .38, 1], [783.99, .38, 1]];
+    for (const [f, t, d] of notes) {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sawtooth';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, now + t);
+      g.gain.exponentialRampToValueAtTime(0.12, now + t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
+      o.connect(g).connect(lp);
+      o.start(now + t);
+      o.stop(now + t + d + 0.05);
+    }
+    setTimeout(() => ac.close(), 1600);
+  } catch {}
+}
+
+// 화면 아래 양쪽 모서리에서 색종이를 쏘아 올린다
+function confetti() {
+  const c = document.createElement('canvas'), x = c.getContext('2d');
+  const W = innerWidth, H = innerHeight, dpr = devicePixelRatio || 1;
+  c.className = 'confetti';
+  c.width = W * dpr;
+  c.height = H * dpr;
+  x.scale(dpr, dpr);
+  document.body.append(c);
+  const css = getComputedStyle(document.documentElement);
+  const colors = ['--accent', '--hot'].map(v => css.getPropertyValue(v).trim()).concat(LANGS.map(l => l.dot));
+  const G = 0.3, DUR = 4000, lift = Math.sqrt(2 * G * H);
+  const ps = Array.from({ length: 160 }, (_, i) => {
+    const dir = i % 2 ? -1 : 1;
+    return {
+      x: dir > 0 ? 0 : W, y: H,
+      vx: dir * (3 + Math.random() * 9), vy: -lift * (0.55 + Math.random() * 0.45),
+      r: Math.random() * 6.3, vr: (Math.random() - 0.5) * 0.4,
+      w: 6 + Math.random() * 6, h: 3 + Math.random() * 4, c: colors[i % colors.length],
+    };
+  });
+  const start = performance.now();
+  let last = start;
+  requestAnimationFrame(function frame(t) {
+    const k = Math.min((t - last) / 16.7, 3); // 120Hz 화면에서도 같은 속도
+    last = t;
+    x.clearRect(0, 0, W, H);
+    x.globalAlpha = Math.min(1, (DUR - (t - start)) / 800);
+    for (const p of ps) {
+      p.vy = Math.min(p.vy + G * k, 3); // 종이라서 천천히 떨어진다
+      p.vx *= 0.99 ** k;
+      p.x += (p.vx + Math.sin(p.r) * 0.8) * k;
+      p.y += p.vy * k;
+      p.r += p.vr * k;
+      x.save();
+      x.translate(p.x, p.y);
+      x.rotate(p.r);
+      x.fillStyle = p.c;
+      x.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      x.restore();
+    }
+    if (t - start < DUR) requestAnimationFrame(frame);
+    else c.remove();
+  });
+}
+
+function celebrate() {
+  fanfare();
+  const res = $('result');
+  res.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  res.classList.add('pop');
+  confetti();
+}
+
+function disarm() {
+  clearTimeout(armed);
+  armed = 0;
+  $('giveup').classList.remove('armed');
+}
+
+$('tabs').addEventListener('click', e => {
+  const t = e.target.closest('.tab');
+  if (!t || t.dataset.id === cur) return;
+  cur = t.dataset.id;
+  store.set('devmantle:lang', cur);
+  disarm();
+  say('');
+  render();
+  $('guess').focus();
+});
+
+$('form').addEventListener('submit', e => {
+  e.preventDefault();
+  const g = game(cur), q = $('guess').value.trim();
+  if (!q) return;
+  const w = lookup(g.words, q);
+  if (!w) return say(`<code>${esc(q)}</code>는 사전에 없는 식별자예요. 표준 라이브러리·키워드 위주로 시도해보세요.`, true);
+  $('guess').value = '';
+  disarm();
+  if (g.guesses.some(x => x.name === w.name)) {
+    say(`<code>${esc(w.name)}</code>는 이미 입력했어요.`);
+    return flash(w.name);
+  }
+  g.guesses.push({ name: w.name });
+  save(g);
+  say(w.name !== q ? `<code>${esc(w.name)}</code>로 입력했어요.` : '');
+  render();
+  if (w === g.answer) celebrate();
+});
+
+$('hint').addEventListener('click', () => {
+  const g = game(cur);
+  disarm();
+  if (done(g)) return say('이미 끝난 문제예요.');
+  const used = g.guesses.filter(x => x.hint).length;
+  if (used >= HINT_RANKS.length) return say('힌트를 모두 썼어요.');
+  const guessed = new Set(g.guesses.map(x => x.name));
+  const best = Math.min(Infinity, ...g.guesses.map(x => g.info.get(x.name).rank));
+  let t = Math.min(HINT_RANKS[used], best - 1);
+  while (t >= 1 && guessed.has(g.ranked[t].w.name)) t--;
+  if (t < 1) return say('더 줄 힌트가 없어요. 정답이 코앞이에요!');
+  const name = g.ranked[t].w.name;
+  g.guesses.push({ name, hint: true });
+  save(g);
+  say(`힌트: <code>${esc(name)}</code>는 ${t}위예요.`);
+  render();
+});
+
+$('giveup').addEventListener('click', () => {
+  const g = game(cur);
+  if (done(g)) return say('이미 끝난 문제예요.');
+  if (!armed) {
+    $('giveup').classList.add('armed');
+    armed = setTimeout(disarm, 3000);
+    return say('한 번 더 누르면 정답을 공개해요.', true);
+  }
+  disarm();
+  g.gaveUp = true;
+  save(g);
+  say('');
+  render();
+});
+
+render();
+</script>
