@@ -168,7 +168,7 @@ details code { color: var(--ink); font-size: 13px; }
         <li>위 탭에서 언어를 고르세요. 언어마다 정답이 따로 있어요.</li>
         <li>그 언어의 함수, 키워드, 타입, 메서드 이름을 입력하세요.</li>
         <li>유사도(0~100)와 순위를 보고 정답에 더 가까운 식별자를 추측하세요. 정답의 유사도는 100이에요.</li>
-        <li>힌트는 3번까지 쓸 수 있어요. 지금까지 찾은 것보다 순위가 높은 식별자를 하나 알려줘요.</li>
+        <li>힌트는 3번까지 쓸 수 있어요. 지금까지 찾은 것보다 순위가 높은 식별자를 하나 알려주지만, 정답이 바로 보일 만큼 가까운 10위 안쪽 식별자는 알려주지 않아요.</li>
       </ol></div>
     </details>
     <details>
@@ -1427,7 +1427,8 @@ const LANGS = [
   { id: 'java', file: 'Main.java', name: 'Java', dot: '#b07219', ps: 'jshell>', eg: 'String' },
   { id: 'rs', file: 'main.rs', name: 'Rust', dot: '#dea584', ps: '>>', eg: 'unwrap' },
 ];
-const HINT_RANKS = [30, 10, 3];
+// 힌트 목표 순위. HINT_FLOOR 안쪽(정답과 거의 같은 단어)은 정답을 그냥 알려주는 셈이라 힌트로 주지 않는다
+const HINT_RANKS = [40, 20, 12], HINT_FLOOR = 10;
 
 function bigrams(s) {
   const g = new Set();
@@ -1714,9 +1715,10 @@ $('hint').addEventListener('click', () => {
   if (used >= HINT_RANKS.length) return say('힌트를 모두 썼어요.');
   const guessed = new Set(g.guesses.map(x => x.name));
   const best = Math.min(Infinity, ...g.guesses.map(x => g.info.get(x.name).rank));
+  if (best - 1 < HINT_FLOOR) return say(`이미 ${HINT_FLOOR}위 안까지 좁혔어요. 여기서부터는 직접 가보세요!`);
   let t = Math.min(HINT_RANKS[used], best - 1);
-  while (t >= 1 && guessed.has(g.ranked[t].w.name)) t--;
-  if (t < 1) return say('더 줄 힌트가 없어요. 정답이 코앞이에요!');
+  while (t >= HINT_FLOOR && guessed.has(g.ranked[t].w.name)) t--;
+  if (t < HINT_FLOOR) return say('더 줄 힌트가 없어요. 정답이 코앞이에요!');
   const name = g.ranked[t].w.name;
   g.guesses.push({ name, hint: true });
   save(g);

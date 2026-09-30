@@ -6,7 +6,8 @@ const LANGS = [
   { id: 'java', file: 'Main.java', name: 'Java', dot: '#b07219', ps: 'jshell>', eg: 'String' },
   { id: 'rs', file: 'main.rs', name: 'Rust', dot: '#dea584', ps: '>>', eg: 'unwrap' },
 ];
-const HINT_RANKS = [30, 10, 3];
+// 힌트 목표 순위. HINT_FLOOR 안쪽(정답과 거의 같은 단어)은 정답을 그냥 알려주는 셈이라 힌트로 주지 않는다
+const HINT_RANKS = [40, 20, 12], HINT_FLOOR = 10;
 
 function bigrams(s) {
   const g = new Set();
@@ -293,9 +294,10 @@ $('hint').addEventListener('click', () => {
   if (used >= HINT_RANKS.length) return say('힌트를 모두 썼어요.');
   const guessed = new Set(g.guesses.map(x => x.name));
   const best = Math.min(Infinity, ...g.guesses.map(x => g.info.get(x.name).rank));
+  if (best - 1 < HINT_FLOOR) return say(`이미 ${HINT_FLOOR}위 안까지 좁혔어요. 여기서부터는 직접 가보세요!`);
   let t = Math.min(HINT_RANKS[used], best - 1);
-  while (t >= 1 && guessed.has(g.ranked[t].w.name)) t--;
-  if (t < 1) return say('더 줄 힌트가 없어요. 정답이 코앞이에요!');
+  while (t >= HINT_FLOOR && guessed.has(g.ranked[t].w.name)) t--;
+  if (t < HINT_FLOOR) return say('더 줄 힌트가 없어요. 정답이 코앞이에요!');
   const name = g.ranked[t].w.name;
   g.guesses.push({ name, hint: true });
   save(g);
